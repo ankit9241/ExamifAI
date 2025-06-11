@@ -1,0 +1,196 @@
+.camera-container {
+  width: 100%;
+  height: 200px;
+  background-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 18px;
+  text-align: center;
+  margin-top: 0 !important;
+  margin-bottom: 24px;
+  min-height: 120px;
+  margin-left: 0 !important;
+}
+
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.error-box {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #8e0e00, #1f1c18);
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  text-align: center;
+}
+
+.blinking-alert {
+  color: #ffcc00;
+  font-size: 36px;
+  margin-bottom: 12px;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%,
+  50%,
+  100% {
+    color: #ffcc00;
+  }
+  25%,
+  75% {
+    color: red;
+  }
+}
+
+.camera-warning {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #ff5858 0%, #f09819 100%);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(255, 88, 88, 0.18);
+  border: 1.5px solid #ffe082;
+}
+
+.blinking-warning {
+  font-size: 2.5rem;
+  animation: blink-warning 1s steps(2, start) infinite;
+  color: #ff9800;
+  margin-bottom: 8px;
+}
+
+.warning-text {
+  color: #b26a00;
+  font-weight: 600;
+  font-size: 1rem;
+  text-align: center;
+}
+
+@keyframes blink-warning {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+.exam-camera {
+  width: 100%;
+  min-width: 320px;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  height: 300px;
+}
+
+.camera-feed {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.camera-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #f8fafc;
+}
+
+.camera-status {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: #4CAF50;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.status-text {
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.camera-error {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #fff3f3;
+  border: 1px solid #ffcdd2;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.error-icon {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  animation: blink 1s infinite;
+}
+
+.error-message {
+  color: #d32f2f;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0 20px;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@media (max-width: 768px) {
+  .exam-camera {
+    height: 250px;
+    min-width: 100%;
+    margin: 0 auto;
+  }
+}

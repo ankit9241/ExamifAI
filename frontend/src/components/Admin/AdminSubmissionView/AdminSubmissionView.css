@@ -1,0 +1,260 @@
+.admin-submission-view {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-section {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(74, 144, 226, 0.1);
+}
+
+.header-section h1 {
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.exam-info {
+  background: linear-gradient(145deg, #ffffff, #f8f9ff);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.exam-info h2 {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.subject-code {
+  color: #4a5568;
+  font-size: 1.1rem;
+}
+
+.submissions-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 1200px) {
+  .submissions-container {
+    grid-template-columns: 1fr 400px;
+  }
+}
+
+.submissions-list {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+}
+
+.submissions-list h3 {
+  color: #2c3e50;
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid rgba(74, 144, 226, 0.1);
+}
+
+.submissions-table {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th, td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(74, 144, 226, 0.1);
+}
+
+th {
+  background: #f8f9ff;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+tr:hover {
+  background: #f8f9ff;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.status.pass {
+  background: rgba(72, 187, 120, 0.1);
+  color: #2f855a;
+}
+
+.status.fail {
+  background: rgba(245, 101, 101, 0.1);
+  color: #c53030;
+}
+
+.status.in_progress {
+  background: rgba(74, 144, 226, 0.1);
+  color: #2b6cb0;
+}
+
+.view-details-btn {
+  background: linear-gradient(135deg, #4a90e2, #357abd);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-details-btn:hover {
+  background: linear-gradient(135deg, #357abd, #2c5282);
+  transform: translateY(-1px);
+}
+
+.submission-details {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  position: sticky;
+  top: 2rem;
+}
+
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid rgba(74, 144, 226, 0.1);
+}
+
+.details-header h3 {
+  color: #2c3e50;
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #4a5568;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.details-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.student-info, .attempt-info, .answers-section {
+  background: #f8f9ff;
+  padding: 1.25rem;
+  border-radius: 8px;
+}
+
+.student-info h4, .attempt-info h4, .answers-section h4 {
+  color: #2c3e50;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(74, 144, 226, 0.1);
+}
+
+.student-info p, .attempt-info p {
+  color: #4a5568;
+  margin: 0.5rem 0;
+}
+
+.answer-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.question-number {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.selected-answer {
+  color: #4a5568;
+  margin-bottom: 0.25rem;
+}
+
+.answer-status {
+  font-weight: 500;
+  margin: 0;
+}
+
+.answer-status.correct {
+  color: #2f855a;
+}
+
+.answer-status.incorrect {
+  color: #c53030;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #4a5568;
+  font-size: 1.1rem;
+}
+
+.error-message {
+  text-align: center;
+  padding: 2rem;
+  color: #c53030;
+  background: rgba(245, 101, 101, 0.1);
+  border-radius: 8px;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .admin-submission-view {
+    padding: 1rem;
+  }
+
+  .header-section h1 {
+    font-size: 1.5rem;
+  }
+
+  .exam-info h2 {
+    font-size: 1.2rem;
+  }
+
+  .submissions-list {
+    padding: 1rem;
+  }
+
+  th, td {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .view-details-btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+  }
+} 

@@ -1,0 +1,151 @@
+.footer {
+  background-color: #1a1a1a;
+  color: #f1f1f1;
+  padding: 40px 20px 20px 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-page-wrapper .footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 100;
+}
+
+.footer-container {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-column {
+  flex: 1 1 22%;
+  margin: 20px 10px;
+  min-width: 150px;
+}
+
+.footer-column h3 {
+  border-bottom: 2px solid #00bcd4;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  font-size: 20px;
+  color: #00bcd4;
+}
+
+.footer-column ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-column ul li {
+  margin-bottom: 10px;
+}
+
+.footer-column ul li a {
+  color: #f1f1f1;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-column ul li a:hover {
+  color: #00bcd4;
+}
+
+/* Clean Social Media Layout */
+.social-media {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.social-link {
+  position: relative;
+  display: inline-block;
+  color: #f1f1f1;
+  font-size: 1.2em;
+  transition: color 0.3s ease;
+  text-decoration: none;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: 150%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  font-size: 0.75em;
+  padding: 6px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.social-link:hover .tooltip {
+  opacity: 1;
+}
+.social-link i {
+  font-size: 1.4em;
+  color: #f1f1f1;
+  transition: color 0.3s ease;
+}
+
+/* Brand Colors on Hover */
+.social-link:hover .fa-facebook-f {
+  color: #1877f2;
+}
+
+.social-link:hover .fa-twitter {
+  color: #1da1f2;
+}
+
+.social-link:hover .fa-linkedin-in {
+  color: #0077b5;
+}
+
+.social-link:hover .fa-instagram {
+  color: #e4405f;
+}
+
+.social-name {
+  font-size: 0.85em;
+  user-select: none;
+  pointer-events: none;
+  color: #ccc;
+  transition: color 0.3s ease;
+}
+
+.social-link:hover .social-name {
+  color: #f1f1f1;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #444;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .footer-column {
+    margin-left: 10px;
+  }
+
+  .social-media {
+    align-items: flex-start;
+  }
+}

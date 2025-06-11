@@ -1,0 +1,299 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f8f8;
+  font-size: 18px;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 98%;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #ffffff;
+  border-bottom: 2px solid #ddd;
+}
+
+.logo {
+  width: 250px;
+}
+
+.user-info {
+  text-align: right;
+}
+
+.header {
+  position: fixed;
+  top: 115px; /* Adjust according to navbar height */
+  left: 0;
+  width: 98%;
+  z-index: 999;
+  background-color: #4db6ac;
+  color: white;
+  padding: 10px 20px;
+  font-size: 22px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 2px solid #ddd;
+}
+
+.container {
+  display: flex;
+  margin: 20px;
+  margin-left: 50px;
+  margin-right: 50px;
+  justify-content: center;
+  gap: 20px;
+
+  margin-top: 160px; /* 60px for navbar + 60px for header */
+}
+
+.question-section {
+  flex: 3;
+  background: white;
+  padding: 30px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.question-box {
+  background: #f1f1f1;
+  padding: 20px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.options label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 85px;
+}
+
+.btn {
+  padding: 12px 18px;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  border-radius: 5px;
+}
+
+.btn-prev {
+  background: gray;
+  color: white;
+}
+
+.btn-next,
+.btn-submit {
+  background: #4db6ac;
+  color: white;
+}
+
+.btn-submit {
+  display: none;
+}
+
+.sidebar {
+  flex: 1;
+  margin-left: 20px;
+  margin-top: 20px;
+  text-align: center;
+  padding-right: 30px;
+}
+
+.options label.marked {
+  background-color: #4db6ac;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.options label.marked:hover {
+  background-color: #00695c;
+}
+
+.question-section {
+  background: white;
+  padding: 20px 30px; /* Reduced padding */
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  margin-top: 40px; /* Start slightly below header */
+  min-height: 150px; /* Ensure some minimum height */
+  margin-bottom: 20px;
+  justify-content: space-between; /* push nav to bottom */
+  min-height: 400px; /* or as needed */
+}
+
+.question-box {
+  background: #f1f1f1;
+  padding: 20px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.options label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.question-nav {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  padding: 20px;
+}
+
+.question-nav button {
+  padding: 12px;
+  border: none;
+  background: #b3c6ff;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.question-nav .active {
+  background: #2d5aff;
+  color: white;
+}
+
+.question-nav .answered {
+  background: #4caf50;
+  color: white;
+}
+
+#timerValue {
+  transition: color 0.3s ease-in-out;
+}
+
+.answered {
+  color: white;
+}
+
+/* Premium styling for current active question */
+.question-nav button.active {
+  background: linear-gradient(135deg, #007bff, #00c6ff); /* Gradient Blue */
+  color: white;
+  border: none;
+  font-weight: 600;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.4); /* Softened glow */
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+  border-radius: 8px;
+}
+
+/* Styling for answered question */
+.question-nav button.answered {
+  box-shadow: 0 0 10px rgba(40, 167, 69, 0.4); /* Green */
+  color: white;
+  border: none;
+  border-radius: 6px;
+}
+
+/* Styling for answered + active question */
+.question-nav button.answered.active {
+  background: linear-gradient(135deg, #20c997, #38f9d7); /* Green gradient */
+  box-shadow: 0 0 5px rgba(40, 167, 69, 0.4); /* Softened glow */
+}
+
+/* Styling for all question navigation buttons */
+.question-nav button {
+  margin: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+/* Hover effect for all question navigation buttons */
+.question-nav button:hover {
+  background-color: #f0f0f0;
+}
+
+.camera-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 40px;
+  margin-left: 29px;
+  text-align: center;
+  max-width: 300px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08), 0 10px 20px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
+
+.camera-warning {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #d9534f;
+  font-weight: bold;
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  max-width: 350px;
+  margin: 20px auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.blinking-alert {
+  animation: fadeBlink 1.2s infinite;
+}
+
+@keyframes fadeBlink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+video {
+  width: 100%;
+  height: auto;
+  max-width: 349px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+  transform: scaleX(-1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

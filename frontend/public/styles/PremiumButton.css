@@ -1,0 +1,20 @@
+.premium-submit-btn {
+  background: linear-gradient(135deg, #4db6ac, #2a6bb1);
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 12px 32px;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(42, 107, 177, 0.10);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  cursor: pointer;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.premium-submit-btn:hover {
+  background: linear-gradient(135deg, #2a6bb1, #4db6ac);
+  box-shadow: 0 6px 24px rgba(42, 107, 177, 0.18);
+  transform: translateY(-2px) scale(1.03);
+} 
