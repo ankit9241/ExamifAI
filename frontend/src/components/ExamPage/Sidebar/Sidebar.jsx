@@ -1,12 +1,14 @@
 import React from "react";
 import "./Sidebar.css";
 import Camera from "./Camera";
+import AudioDetection from '../AudioDetection/AudioDetection';
 
 const Sidebar = () => {
   return (
     <div className="exam-sidebar">
       <div className="sidebar-content">
         <Camera />
+        <AudioDetection />
         <div className="sidebar-info">
           <div className="info-section">
             <h3>Exam Guidelines</h3>

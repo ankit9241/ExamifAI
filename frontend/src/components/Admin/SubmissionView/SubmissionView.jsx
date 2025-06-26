@@ -54,9 +54,24 @@ const SubmissionView = () => {
     });
   };
 
+  const formatTimeTaken = (start, end) => {
+    if (!start || !end) return 'N/A';
+    const diffMs = new Date(end) - new Date(start);
+    if (isNaN(diffMs) || diffMs < 0) return 'N/A';
+    const totalSeconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes} min ${seconds} sec`;
+  };
+
   const handlePrint = () => {
     window.print();
   };
+
+  // Helper to get student name/email and exam title robustly
+  const getStudentName = (attempt) => attempt.studentName || attempt.user?.name || 'N/A';
+  const getStudentEmail = (attempt) => attempt.studentEmail || attempt.user?.email || 'N/A';
+  const getExamTitle = (attempt, exam) => attempt.examName || exam?.title || attempt.exam?.title || 'N/A';
 
   if (loading) {
     return (
@@ -121,57 +136,63 @@ const SubmissionView = () => {
 
       {/* Student Info Section */}
       <div className="info-section">
-        <div className="student-info">
+        <div className="student-info premium-card">
           <h2>Student Information</h2>
           <div className="info-grid">
-            <div className="info-item">
-              <span className="label">Name:</span>
-              <span className="value">{attempt.studentName}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Email:</span>
-              <span className="value">{attempt.studentEmail}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Start Time:</span>
-              <span className="value">{formatDate(attempt.startTime)}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">End Time:</span>
-              <span className="value">{formatDate(attempt.endTime)}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Time Taken:</span>
-              <span className="value">{attempt.timeTaken} minutes</span>
-            </div>
+            <div className="info-item"><span className="label">Name:</span><span className="value">{getStudentName(attempt)}</span></div>
+            <div className="info-item"><span className="label">Email:</span><span className="value">{getStudentEmail(attempt)}</span></div>
+            <div className="info-item"><span className="label">Start Time:</span><span className="value">{formatDate(attempt.startTime)}</span></div>
+            <div className="info-item"><span className="label">End Time:</span><span className="value">{formatDate(attempt.endTime)}</span></div>
+            <div className="info-item"><span className="label">Time Taken:</span><span className="value">{formatTimeTaken(attempt.startTime, attempt.endTime)}</span></div>
           </div>
         </div>
-
-        {/* Recreated Exam Information section with new class name */}
-        <div className="exam-details-info">
+        <div className="exam-details-info premium-card">
           <h2>Exam Information</h2>
           <div className="info-grid">
-            <div className="info-item">
-              <span className="label">Exam Title:</span>
-              <span className="value">{attempt.examName}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Total Questions:</span>
-              <span className="value">{exam.questions.length}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Answered Questions:</span>
-              <span className="value">{attempt.answers.length}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Score:</span>
-              <span className="value">{attempt.score}%</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Status:</span>
-              <span className={`status-badge ${attempt.status.toLowerCase()}`}>
-                {attempt.status}
-              </span>
+            <div className="info-item"><span className="label">Exam Title:</span><span className="value">{getExamTitle(attempt, exam)}</span></div>
+            <div className="info-item"><span className="label">Total Questions:</span><span className="value">{exam.questions.length}</span></div>
+            <div className="info-item"><span className="label">Answered Questions:</span><span className="value">
+              {(() => {
+                let answeredCount = 0;
+                exam.questions.forEach((question, index) => {
+                  const answer = attempt.answers.find(a => (a.questionIndex !== undefined ? a.questionIndex : a.question) === index);
+                  const selectedOption = answer?.selectedOption !== undefined ? answer.selectedOption : answer?.selectedAnswer;
+                  const hasAnswered = selectedOption !== undefined && selectedOption !== null && selectedOption !== '' && selectedOption !== 'Not Answered' && selectedOption !== -1;
+                  
+                  if (hasAnswered) {
+                    answeredCount++;
+                  }
+                });
+                return answeredCount;
+              })()}
+            </span></div>
+            <div className="info-item"><span className="label">Score:</span><span className="value">
+              {(() => {
+                let correctCount = 0;
+                exam.questions.forEach((question, index) => {
+                  const answer = attempt.answers.find(a => (a.questionIndex !== undefined ? a.questionIndex : a.question) === index);
+                  const selectedOption = answer?.selectedOption !== undefined ? answer.selectedOption : answer?.selectedAnswer;
+                  const hasAnswered = selectedOption !== undefined && selectedOption !== null && selectedOption !== '' && selectedOption !== 'Not Answered' && selectedOption !== -1;
+                  
+                  if (hasAnswered) {
+                    const correctAnswerText = question.correctAnswer !== undefined && question.options && question.options[question.correctAnswer] !== undefined
+                      ? question.options[question.correctAnswer]
+                      : null;
+                    
+                    if (selectedOption === correctAnswerText) {
+                      correctCount++;
+                    }
+                  }
+                });
+                return `${correctCount} / ${exam.questions.length}`;
+              })()}
+            </span></div>
+            <div className="info-item"><span className="label">Status:</span><span className={`status-badge ${attempt.status.toLowerCase()}`}>
+              {attempt.status}
+            </span></div>
+            {/* Debug info */}
+            <div style={{fontSize: '0.7rem', color: '#666', marginTop: '5px'}}>
+              Debug: Status = "{attempt.status}", Class = "{attempt.status.toLowerCase()}"
             </div>
           </div>
         </div>
@@ -182,15 +203,33 @@ const SubmissionView = () => {
         <h2>Question-wise Answers</h2>
         <div className="answers-grid">
           {exam.questions.map((question, index) => {
-            const answer = attempt.answers.find(a => a.questionIndex === index);
-            const isCorrect = answer?.selectedOption === question.correctAnswer;
+            const answer = attempt.answers.find(a => (a.questionIndex !== undefined ? a.questionIndex : a.question) === index);
+            // Support both selectedOption (number) and selectedAnswer (string or number)
+            const selectedOption = answer?.selectedOption !== undefined ? answer.selectedOption : answer?.selectedAnswer;
+            const hasAnswered = selectedOption !== undefined && selectedOption !== null && selectedOption !== '' && selectedOption !== 'Not Answered' && selectedOption !== -1;
+            
+            // Get the correct answer text
+            const correctAnswerText = question.correctAnswer !== undefined && question.options && question.options[question.correctAnswer] !== undefined
+              ? question.options[question.correctAnswer]
+              : null;
+            
+            // Compare the actual answer text
+            const isCorrect = hasAnswered && selectedOption === correctAnswerText;
+            
+            // Debug logging
+            console.log(`Question ${index + 1}:`, {
+              selectedOption,
+              correctAnswerText,
+              isCorrect,
+              hasAnswered
+            });
             
             return (
               <div key={index} className="answer-card">
                 <div className="question-header">
                   <h3>Question {index + 1}</h3>
-                  <span className={`answer-status ${isCorrect ? 'correct' : 'incorrect'}`}>
-                    {isCorrect ? 'Correct' : 'Incorrect'}
+                  <span className={`answer-status ${hasAnswered ? (isCorrect ? 'correct' : 'incorrect') : 'not-answered'}`}>
+                    {hasAnswered ? (isCorrect ? 'Correct' : 'Incorrect') : 'Not Answered'}
                   </span>
                 </div>
                 <p className="question-text">{question.question}</p>
@@ -199,7 +238,7 @@ const SubmissionView = () => {
                     <div 
                       key={optIndex} 
                       className={`option ${optIndex === question.correctAnswer ? 'correct-answer' : ''} 
-                        ${optIndex === answer?.selectedOption ? 'student-answer' : ''}`}
+                        ${option === selectedOption ? 'student-answer' : ''}`}
                     >
                       <span className="option-label">Option {optIndex + 1}:</span>
                       <span className="option-text">{option}</span>
@@ -213,17 +252,13 @@ const SubmissionView = () => {
                   <div className="detail-item">
                     <span className="label">Student's Answer:</span>
                     <span className="value">
-                      {answer?.selectedOption !== undefined 
-                        ? question.options[answer.selectedOption] 
-                        : 'Not Answered'}
+                      {hasAnswered ? selectedOption : 'Not Answered'}
                     </span>
                   </div>
                   <div className="detail-item">
                     <span className="label">Correct Answer:</span>
                     <span className="value">
-                      {question.correctAnswer !== undefined && question.options && question.options[question.correctAnswer] !== undefined
-                        ? question.options[question.correctAnswer]
-                        : 'Not Available'}
+                      {correctAnswerText || 'Not Available'}
                     </span>
                   </div>
                 </div>

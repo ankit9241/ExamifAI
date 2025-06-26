@@ -117,25 +117,6 @@ router.post('/submit', auth, async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // Check if there's an existing attempt for this user and exam
-    const existingAttempt = await Attempt.findOne({ user, exam, status: { $ne: 'completed' } });
-    if (existingAttempt) {
-      // If there's an existing attempt, update it instead of creating a new one
-      existingAttempt.answers = answers;
-      existingAttempt.score = score;
-      existingAttempt.endTime = endTime;
-      existingAttempt.status = status;
-      existingAttempt.studentName = studentName;
-      existingAttempt.studentEmail = studentEmail;
-      existingAttempt.examName = examName;
-      existingAttempt.totalQuestions = totalQuestions;
-      existingAttempt.answeredQuestions = answeredQuestions;
-      existingAttempt.timeTaken = timeTaken;
-      
-      await existingAttempt.save();
-      return res.status(200).json(existingAttempt);
-    }
-
     // Ensure all answers have valid format
     const formattedAnswers = answers.map((answer, index) => ({
       question: index, // Use index instead of _id since questions don't have IDs
@@ -160,10 +141,8 @@ router.post('/submit', auth, async (req, res) => {
     });
 
     console.log('Saving attempt:', attempt);
-    
-    await attempt.save();
-
-    res.status(201).json(attempt);
+    const savedAttempt = await attempt.save();
+    res.status(201).json(savedAttempt);
   } catch (error) {
     console.error('Error in POST /submit route:', error);
     if (error.code === 11000) { // Duplicate key error

@@ -66,14 +66,6 @@ router.post('/start', auth, async (req, res) => {
     if (!exam || !exam.isActive) {
       return res.status(400).json({ message: 'Exam not available' });
     }
-    const existingAttempt = await Attempt.findOne({
-      user: req.user._id,
-      exam: examId,
-      status: 'in_progress'
-    });
-    if (existingAttempt) {
-      return res.status(200).json(existingAttempt);
-    }
     const attempt = new Attempt({
       user: req.user._id,
       exam: examId,
@@ -287,15 +279,6 @@ router.post('/', auth, async (req, res) => {
       answeredQuestions,
       timeTaken
     } = req.body;
-    const existingAttempt = await Attempt.findOne({
-      user: user,
-      exam: exam
-    });
-    if (existingAttempt) {
-      return res.status(400).json({ 
-        message: 'You have already attempted this exam. Only one attempt is allowed.' 
-      });
-    }
     const attempt = new Attempt({
       user,
       exam,

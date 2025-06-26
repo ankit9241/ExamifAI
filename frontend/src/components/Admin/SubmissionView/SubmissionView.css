@@ -182,39 +182,105 @@
 }
 
 .info-item .label {
-  color: #666;
-  font-size: 0.9rem;
-  font-weight: 500;
-  flex: 0 0 40% !important;
-  text-align: left;
+  color: #2a6bb1;
+  font-size: 1.05rem;
+  font-weight: 600;
 }
 
 .info-item .value {
   color: #1a1a1a;
-  font-weight: 600;
-  flex: 1 !important;
-  text-align: right;
-  word-break: break-word;
-  white-space: normal;
-  min-width: 0 !important;
+  font-size: 1.08rem;
+  font-weight: 700;
 }
 
 .status-badge {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
   display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.status-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.status-badge:hover::before {
+  left: 100%;
 }
 
 .status-badge.pass {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  color: white;
+  border-color: #43a047;
+  box-shadow: 0 3px 8px rgba(76, 175, 80, 0.3);
+}
+
+.status-badge.pass:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
 }
 
 .status-badge.fail {
-  background: #ffebee;
-  color: #c62828;
+  background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+  color: white;
+  border-color: #e53935;
+  box-shadow: 0 3px 8px rgba(244, 67, 54, 0.3);
+}
+
+.status-badge.fail:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+.status-badge.completed {
+  background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);
+  color: white;
+  border-color: #1e88e5;
+  box-shadow: 0 3px 8px rgba(33, 150, 243, 0.3);
+}
+
+.status-badge.completed:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+}
+
+.status-badge.in-progress {
+  background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+  color: white;
+  border-color: #f57c00;
+  box-shadow: 0 3px 8px rgba(255, 152, 0, 0.3);
+}
+
+.status-badge.in-progress:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
+.status-badge.pending {
+  background: linear-gradient(135deg, #9e9e9e 0%, #bdbdbd 100%);
+  color: white;
+  border-color: #757575;
+  box-shadow: 0 3px 8px rgba(158, 158, 158, 0.3);
+}
+
+.status-badge.pending:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(158, 158, 158, 0.4);
 }
 
 /* Answers Section */
@@ -280,6 +346,11 @@
 .answer-status.incorrect {
   background: #ffebee;
   color: #c62828;
+}
+
+.answer-status.not-answered {
+  background: #fff3e0;
+  color: #f57c00;
 }
 
 .question-text {
@@ -432,4 +503,21 @@
   .answer-details {
     grid-template-columns: 1fr;
   }
+}
+
+.premium-card {
+  background: linear-gradient(135deg, #f8fafc 60%, #e3e9f7 100%);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(74, 144, 226, 0.08), 0 1.5px 6px rgba(44, 62, 80, 0.04);
+  padding: 2rem 2rem 1.5rem 2rem;
+  margin-bottom: 1.5rem;
+  border: 1.5px solid #e3e9f7;
+}
+
+.premium-card h2 {
+  color: #357abd;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+  letter-spacing: 0.01em;
 } 

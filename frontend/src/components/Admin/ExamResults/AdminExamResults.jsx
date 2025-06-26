@@ -73,12 +73,27 @@ const AdminExamResults = () => {
         // Calculate question insights (only for completed attempts)
         const completedAttempts = attemptsResponse.data.filter(a => a.status === 'completed');
         const insights = examResponse.data.questions.map((question, index) => {
-          const correctCount = completedAttempts.filter(a => 
-            a.answers[index]?.selectedOption === question.correctAnswer
-          ).length;
+          let correctCount = 0;
+          completedAttempts.forEach(attempt => {
+            const answer = attempt.answers.find(a => (a.questionIndex !== undefined ? a.questionIndex : a.question) === index);
+            const selectedOption = answer?.selectedOption !== undefined ? answer.selectedOption : answer?.selectedAnswer;
+            const hasAnswered = selectedOption !== undefined && selectedOption !== null && selectedOption !== '' && selectedOption !== 'Not Answered' && selectedOption !== -1;
+            
+            if (hasAnswered) {
+              const correctAnswerText = question.correctAnswer !== undefined && question.options && question.options[question.correctAnswer] !== undefined
+                ? question.options[question.correctAnswer]
+                : null;
+              
+              if (selectedOption === correctAnswerText) {
+                correctCount++;
+              }
+            }
+          });
+          
           const correctRate = (correctCount / completedAttempts.length) * 100 || 0;
           return {
             questionNumber: index + 1,
+            questionText: question.question,
             correctRate: Math.round(correctRate),
             difficulty: correctRate >= 70 ? 'Easy' : correctRate >= 40 ? 'Medium' : 'Hard'
           };
@@ -103,6 +118,36 @@ const AdminExamResults = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const formatTimeTaken = (start, end) => {
+    if (!start || !end) return 'N/A';
+    const diffMs = new Date(end) - new Date(start);
+    if (isNaN(diffMs) || diffMs < 0) return 'N/A';
+    const totalSeconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes} min ${seconds} sec`;
+  };
+
+  const calculateCorrectAnswers = (attempt, exam) => {
+    let correctCount = 0;
+    exam.questions.forEach((question, index) => {
+      const answer = attempt.answers.find(a => (a.questionIndex !== undefined ? a.questionIndex : a.question) === index);
+      const selectedOption = answer?.selectedOption !== undefined ? answer.selectedOption : answer?.selectedAnswer;
+      const hasAnswered = selectedOption !== undefined && selectedOption !== null && selectedOption !== '' && selectedOption !== 'Not Answered' && selectedOption !== -1;
+      
+      if (hasAnswered) {
+        const correctAnswerText = question.correctAnswer !== undefined && question.options && question.options[question.correctAnswer] !== undefined
+          ? question.options[question.correctAnswer]
+          : null;
+        
+        if (selectedOption === correctAnswerText) {
+          correctCount++;
+        }
+      }
+    });
+    return correctCount;
   };
 
   if (loading) {
@@ -165,7 +210,7 @@ const AdminExamResults = () => {
           </div>
           <div className="summary-card">
             <h3>Total Marks</h3>
-            <div className="summary-value">{exam.questions.length * 2}</div>
+            <div className="summary-value">{exam.questions.length}</div>
           </div>
           <div className="summary-card">
             <h3>Students Attempted</h3>
@@ -196,23 +241,23 @@ const AdminExamResults = () => {
             </thead>
             <tbody>
               {attempts.map((attempt, index) => {
-                const timeTaken = Math.round((new Date(attempt.endTime) - new Date(attempt.startTime)) / (1000 * 60));
+                const correctAnswers = calculateCorrectAnswers(attempt, exam);
                 return (
                   <tr key={attempt._id}>
                     <td>{index + 1}</td>
-                    <td>{attempt.user.name}</td>
+                    <td><strong>{attempt.user.name}</strong></td>
                     <td>{attempt.user.rollNo}</td>
-                    <td>{attempt.score}/{exam.questions.length * 2}</td>
+                    <td>{correctAnswers} / {exam.questions.length}</td>
                     <td>
                       <span className={`status-badge ${attempt.status}`}>
                         {attempt.status === 'in_progress' ? 'In Progress' : 
-                         attempt.status === 'completed' && attempt.score >= exam.passingScore ? 'Pass' : 'Fail'}
+                         attempt.status === 'completed' && correctAnswers >= exam.passingScore ? 'Pass' : 'Fail'}
                       </span>
                     </td>
                     <td>
                       {attempt.status === 'in_progress' ? 
                         'Ongoing' : 
-                        `${timeTaken} min`
+                        formatTimeTaken(attempt.startTime, attempt.endTime)
                       }
                     </td>
                     <td>
@@ -223,21 +268,15 @@ const AdminExamResults = () => {
                         >
                           View Submission
                         </button>
-                        <div className="dropdown">
-                          <button className="dropdown-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                              <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                            </svg>
-                          </button>
-                          <div className="dropdown-content">
-                            <button 
-                              className="dropdown-item"
-                              onClick={() => handleDeleteAttempt(attempt._id)}
-                            >
-                              Delete Attempt
-                            </button>
-                          </div>
-                        </div>
+                        <button 
+                          className="delete-btn"
+                          onClick={() => handleDeleteAttempt(attempt._id)}
+                          title="Delete Attempt"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                          </svg>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -260,7 +299,7 @@ const AdminExamResults = () => {
                   {insight.difficulty}
                 </span>
               </div>
-              <p className="question-text">{insight.question}</p>
+              <p className="question-text">{insight.questionText}</p>
               <div className="insight-stats">
                 <div className="stat">
                   <span className="label">Correct Rate:</span>

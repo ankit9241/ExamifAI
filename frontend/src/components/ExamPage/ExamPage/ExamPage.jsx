@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { examService, attemptService } from "../../../services/api.jsx";
+import { examService } from "../../../services/api.jsx";
 import Header from "../Header/Header";
 import Sidebar from "../Sidebar/Sidebar";
 import QuestionSection from "../QuestionSection/QuestionSection";
 import SubmitConfirmationModal from "../SubmitConfirmation/SubmitConfirmationModal";
 import QuestionNavigation from "../QuestionNavigation/QuestionNavigation";
 import "./ExamPage.css";
+import useFullscreen from './useFullscreen';
+import WarningModal from '../SubmitConfirmation/WarningModal';
 
 const calculateScore = (answers, questions) => {
   if (!answers || !questions) {
@@ -50,6 +52,13 @@ const ExamPage = () => {
   const [examEndTime, setExamEndTime] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [examId, setExamId] = useState(null);
+  const [activeAttemptId, setActiveAttemptId] = useState(null);
+  const [isExamStarted, setIsExamStarted] = useState(false);
+  const [examDetails, setExamDetails] = useState(null);
+  const { isFullscreen, enter } = useFullscreen();
+  const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  const [showTabWarning, setShowTabWarning] = useState(false);
+  const violationTimeoutRef = useRef(null);
 
   // Helper functions
   const validateExamData = (examData) => {
@@ -89,84 +98,6 @@ const ExamPage = () => {
     }
   };
 
-  // const handleExistingAttempt = async (existingAttempt) => {
-  //   const confirmAction = window.confirm(
-  //     'You have an existing attempt in progress.\n\n' +
-  //     '1. Resume Attempt: Continue with your existing attempt\n' +
-  //     '2. Abandon Attempt: Start a new attempt (your existing attempt will be marked as abandoned)\n\n' +
-  //     'Choose an option:'
-  //   );
-  // 
-  //   if (confirmAction) {
-  //     // User chose to abandon existing attempt
-  //     try {
-  //       await attemptService.updateAttempt(existingAttempt._id, { status: 'abandoned' });
-  //       return false; // Proceed to create new attempt
-  //     } catch (error) {
-  //       console.error('Error abandoning attempt:', error);
-  //       throw new Error('Failed to abandon existing attempt. Please try again.');
-  //     }
-  //   } else {
-  //     // User chose to resume existing attempt
-  //     setActiveAttemptId(existingAttempt._id);
-  //     setExamStartTime(new Date(existingAttempt.startTime));
-  //     setExamEndTime(new Date(existingAttempt.endTime));
-  //     setSelectedAnswers(existingAttempt.answers || {});
-  //     setCurrentIndex(existingAttempt.lastSavedIndex || 0);
-  //     setExamDetails(existingAttempt.examDetails || exam);
-  //     setTimeLeft(Math.floor((new Date(existingAttempt.endTime) - new Date()) / 1000));
-  //     setIsExamStarted(true);
-  //     return existingAttempt;
-  //   }
-  // };
-  // 
-  // const startNewAttempt = async (examId) => {
-  //   try {
-  //     // Get user info
-  //     const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-  //     if (!userInfo || !userInfo._id) {
-  //       throw new Error('User not authenticated');
-  //     }
-  // 
-  //     // Get exam details
-  //     const exam = await examService.getExamById(examId);
-  //     if (!exam) {
-  //       throw new Error('Exam not found');
-  //     }
-  // 
-  //     // Get exam attempts for this user
-  //     const attempts = await attemptService.getAttemptsByExam(examId);
-  //     
-  //     // Check for existing in-progress attempt
-  //     const existingAttempt = attempts.find(
-  //       a => a.user && 
-  //            a.user._id === userInfo._id && 
-  //            a.status === 'in_progress'
-  //     );
-  // 
-  //     if (existingAttempt) {
-  //       const result = await handleExistingAttempt(existingAttempt);
-  //       if (result) {
-  //         return result; // Return existing attempt if user chose to resume
-  //       }
-  //     }
-  // 
-  //     // Check if max attempts reached
-  //     if (exam.maxAttempts && attempts.length >= exam.maxAttempts) {
-  //       throw new Error(`You have reached the maximum number of attempts (${exam.maxAttempts}) for this exam.`);
-  //     }
-  // 
-  //     // Start new attempt
-  //     const newAttempt = await attemptService.startAttempt(examId);
-  //     setActiveAttemptId(newAttempt._id);
-  //     setExamStartTime(new Date());
-  //     setExamEndTime(new Date(new Date().getTime() + (exam.duration * 60 * 1000)));
-  //     return newAttempt;
-  //   } catch (error) {
-  //     console.error('Error starting attempt:', error);
-  //     throw error;
-  //   }
-  // };
   const loadExamData = async () => {
     try {
       setLoading(true);
@@ -249,6 +180,69 @@ const ExamPage = () => {
     };
   }, []);
 
+  useEffect(() => {
+    enter();
+  }, [enter]);
+
+  // Tab/window switch and shortcut prevention
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        setTabSwitchCount((count) => count + 1);
+        setShowTabWarning(true);
+      }
+    }
+    function handleBlur() {
+      setTabSwitchCount((count) => count + 1);
+      setShowTabWarning(true);
+    }
+    function handleKeyDown(e) {
+      // Block shortcuts
+      if (
+        (e.ctrlKey && (e.key === 't' || e.key === 'w')) || // Ctrl+T, Ctrl+W
+        (e.key === 'F12') || (e.key === 'F11') ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) // Dev tools
+      ) {
+        e.preventDefault();
+        setTabSwitchCount((count) => count + 1);
+        setShowTabWarning(true);
+      }
+    }
+    function handleContextMenu(e) {
+      e.preventDefault();
+      setTabSwitchCount((count) => count + 1);
+      setShowTabWarning(true);
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('contextmenu', handleContextMenu);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, []);
+
+  // Auto-submit after 3 violations
+  useEffect(() => {
+    if (tabSwitchCount >= 3) {
+      setShowTabWarning(false);
+      if (!violationTimeoutRef.current) {
+        violationTimeoutRef.current = setTimeout(() => {
+          handleSubmit();
+        }, 2000); // 2 seconds delay before auto-submit
+      }
+    }
+    return () => {
+      if (violationTimeoutRef.current && tabSwitchCount < 3) {
+        clearTimeout(violationTimeoutRef.current);
+        violationTimeoutRef.current = null;
+      }
+    };
+  }, [tabSwitchCount]);
+
   // Handle submission
   const handleSubmit = async () => {
     if (isSubmitting) {
@@ -286,60 +280,6 @@ const ExamPage = () => {
         examQuestions
       );
 
-      // Check if there's an existing attempt for this user and exam
-      const userAttempts = await attemptService.getAttemptsByUser(userInfo._id);
-      const existingAttempt = userAttempts.find(attempt => attempt.exam === exam._id);
-      
-      if (existingAttempt) {
-        // If there's an existing attempt, update it regardless of status
-        console.log('Updating existing attempt:', existingAttempt._id);
-        
-        // Prepare update data
-        const updateData = {
-          answers: formattedAnswers.map((answer, index) => ({
-            question: index,
-            selectedAnswer: answer.selectedAnswer || 'Not Answered'
-          })),
-          score: score.toFixed(1),
-          endTime: new Date().toISOString(),
-          status: 'completed',
-          answeredQuestions: Object.keys(selectedAnswers).length,
-          timeTaken: exam.duration * 60 - timeLeft,
-          studentName: userInfo.name,
-          studentEmail: userInfo.email,
-          examName: exam.title,
-          totalQuestions: examQuestions.length
-        };
-
-        // Update the existing attempt
-        const response = await attemptService.updateAttempt(existingAttempt._id, updateData);
-        
-        if (response && response._id) {
-          // Clear exam data from localStorage
-          localStorage.removeItem('questions');
-          localStorage.removeItem('examProgress');
-          
-          navigate('/review', { 
-            state: { 
-              attemptId: response._id,
-              examId: exam._id,
-              score: score.toFixed(1),
-              status: score >= 40 ? 'Pass' : 'Fail',
-              examName: exam.title,
-              studentName: userInfo.name,
-              totalQuestions: examQuestions.length,
-              answeredQuestions: Object.keys(selectedAnswers).length
-            }
-          });
-        } else {
-          throw new Error('Failed to update existing attempt');
-        }
-        return; // Exit early since we've already handled the submission
-      }
-
-// If no attempt exists, create a new one
-      console.log('Creating new attempt');
-      
       // Prepare submission data
       const submissionData = {
         user: userInfo._id,
@@ -361,7 +301,7 @@ const ExamPage = () => {
       };
 
       // Submit the exam using exam service
-      const response = await examService.submitAttempt(existingAttempt._id, submissionData);
+      const response = await examService.submitExam(submissionData);
       
       if (response && response._id) {
         // Clear exam data from localStorage
@@ -381,7 +321,7 @@ const ExamPage = () => {
           }
         });
       } else {
-        throw new Error('Failed to create new attempt');
+        throw new Error('Failed to create new submission');
       }
     } catch (error) {
       console.error('Error submitting exam:', error);
@@ -446,6 +386,15 @@ const ExamPage = () => {
 
   return (
     <div className="exam-page">
+      {!isFullscreen && (
+        <WarningModal
+          open={!isFullscreen}
+          onClose={enter}
+          title="Fullscreen Required"
+          message={"The exam must be taken in fullscreen mode. Please re-enter fullscreen to continue."}
+          buttonText="Re-enter Fullscreen"
+        />
+      )}
       <Header timeLeft={timeLeft} />
       {examQuestions.length > 0 && (
         <QuestionNavigation
@@ -506,6 +455,17 @@ const ExamPage = () => {
         totalQuestions={examQuestions.length}
         isSubmitting={isSubmitting}
       />
+      {showTabWarning && tabSwitchCount < 3 && (
+        <WarningModal
+          open={showTabWarning}
+          onClose={() => setShowTabWarning(false)}
+          title="Warning: Exam Policy Violation"
+          message={tabSwitchCount === 1
+            ? 'You switched tabs, minimized, or tried a blocked shortcut. Please do not leave the exam window or use shortcuts.'
+            : `You have violated the policy ${tabSwitchCount} times. On the 3rd violation, your exam will be auto-submitted.`}
+          buttonText="Continue Exam"
+        />
+      )}
     </div>
   );
 };

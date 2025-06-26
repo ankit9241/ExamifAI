@@ -1,0 +1,31 @@
+.audio-detection-container {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin-top: 20px;
+  background: #f0f4f8;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.db-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #007bff;
+  margin: 10px 0;
+}
+
+.warning {
+  margin-top: 20px;
+  font-size: 1.5rem;
+  color: red;
+  font-weight: bold;
+}
+
+.audio-warning {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: red;
+  font-weight: bold;
+  text-align: center;
+} 

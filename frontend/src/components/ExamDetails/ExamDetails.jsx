@@ -41,43 +41,6 @@ const ExamDetails = () => {
     fetchExamDetails();
   }, [examId]);
 
-  useEffect(() => {
-    const checkAttempt = async () => {
-      try {
-        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-        if (!userInfo || !examId) return;
-
-        const attempts = await attemptService.getAttemptsByUser(userInfo._id);
-        
-        // Find all attempts for this exam
-        const examAttempts = attempts.filter(a => {
-          const attemptExamId = typeof a.exam === 'object' ? a.exam._id : a.exam;
-          return attemptExamId === examId;
-        });
-
-        if (examAttempts.length > 0) {
-          // Find in-progress attempt
-          const inProgress = examAttempts.find(a => a.status === 'in_progress');
-          if (inProgress) {
-            setInProgressAttempt(inProgress);
-          }
-
-          // Sort completed attempts by date, most recent first
-          const completedAttempts = examAttempts.filter(a => a.status !== 'in_progress')
-            .sort((a, b) => new Date(b.endTime) - new Date(a.endTime));
-          
-          if (completedAttempts.length > 0) {
-            setAttempt(completedAttempts[0]);
-          }
-        }
-      } catch (error) {
-        console.error('Error checking attempt:', error);
-      }
-    };
-
-    checkAttempt();
-  }, [examId]);
-
   const handleStartExamClick = () => {
     setShowConfirmationModal(true);
   };
@@ -89,26 +52,6 @@ const ExamDetails = () => {
       
       if (!examId) {
         throw new Error('No exam ID provided');
-      }
-
-      // Get user info
-      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-      if (!userInfo) {
-        throw new Error('Please log in to start the exam');
-      }
-
-      // Check for existing attempts
-      const attempts = await attemptService.getAttemptsByUser(userInfo._id);
-      const existingCompletedAttempt = attempts.find(a => {
-        const attemptExamId = typeof a.exam === 'object' ? a.exam._id : a.exam;
-        return attemptExamId === examId && a.status !== 'in_progress';
-      });
-
-      if (existingCompletedAttempt) {
-        setError('You have already completed this exam. Only one attempt is allowed.');
-        setLoading(false);
-        setShowConfirmationModal(false);
-        return;
       }
 
       // Fetch exam details

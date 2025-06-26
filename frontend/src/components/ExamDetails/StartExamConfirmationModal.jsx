@@ -18,6 +18,12 @@ const StartExamConfirmationModal = ({ isOpen, onClose, onConfirm, loading }) => 
               <li>Exam will auto-submit when time is up</li>
               <li>Ensure you have a stable internet connection</li>
               <li>Make sure your camera and microphone are working</li>
+              <li>
+                <span className="important-warning">You must stay in fullscreen mode for the entire exam. Exiting fullscreen will block the exam until you return.</span>
+              </li>
+              <li>
+                <span className="important-warning">Do not switch tabs, minimize, or use browser shortcuts (Ctrl+T, Ctrl+W, F12, etc.). After 3 violations, your exam will be auto-submitted.</span>
+              </li>
             </ul>
           </div>
         </div>

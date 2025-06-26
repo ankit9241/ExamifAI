@@ -28,8 +28,6 @@
   margin: 16px 0 16px 0 !important;
 }
 
-
-
 .results-header h1 {
   font-size: 1.75rem;
   color: #1a1a1a;
@@ -201,60 +199,31 @@
   transform: translateY(-1px);
 }
 
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.dropdown-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
+.delete-btn {
   padding: 0.5rem;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.dropdown-btn:hover {
-  background: #f0f0f0;
-}
-
-.dropdown-content {
-  display: none;
-  position: absolute;
-  right: 0;
-  background-color: white;
-  min-width: 160px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-  border-radius: 8px;
-  z-index: 1;
-  margin-top: 8px;
-}
-
-.dropdown:hover .dropdown-content {
-  display: block;
-}
-
-.dropdown-item {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  text-align: left;
+  background: #dc3545;
+  color: white;
   border: none;
-  background: none;
+  border-radius: 6px;
   cursor: pointer;
-  display: block;
-  color: #333;
   font-size: 0.9rem;
-  transition: all 0.2s ease;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
 }
 
-.dropdown-item:hover {
-  background: #f8f9fa;
-  color: #2a6bb1;
+.delete-btn:hover {
+  background: #c82333;
+  transform: translateY(-1px);
 }
 
-.dropdown-item:active {
-  background: #e9ecef;
+.delete-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* Insights Section */

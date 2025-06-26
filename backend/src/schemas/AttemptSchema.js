@@ -32,7 +32,4 @@ const AttemptSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Add compound index for unique attempts per user per assignment
-AttemptSchema.index({ user: 1, assignment: 1, subject: 1 }, { unique: true });
-
 module.exports = AttemptSchema; 

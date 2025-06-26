@@ -155,4 +155,45 @@
     padding: 0.6rem 1.2rem;
     font-size: 0.95rem;
   }
+}
+
+.premium-warning {
+  background: linear-gradient(90deg, #fffbe6 0%, #fff8dc 100%);
+  border: 1.5px solid #e6c200;
+  box-shadow: 0 4px 18px rgba(230, 194, 0, 0.08), 0 1.5px 6px rgba(230, 194, 0, 0.12);
+  color: #856404;
+  font-weight: 600;
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.08rem;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  letter-spacing: 0.01em;
+  transition: box-shadow 0.2s;
+}
+.premium-warning .icon {
+  font-size: 1.6rem;
+  margin-bottom: 2px;
+  color: #e6c200;
+  filter: drop-shadow(0 0 2px #fffbe6);
+}
+.premium-warning-text {
+  display: block;
+  margin-top: 2px;
+  margin-left: 2px;
+  line-height: 1.5;
+}
+
+.important-warning {
+  color: #c0392b;
+  font-weight: bold;
+  font-size: inherit;
+  margin-bottom: 10px;
+  margin-top: 2px;
+  display: block;
+  text-align: left;
 } 
