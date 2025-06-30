@@ -136,8 +136,6 @@ export const attemptService = {
         }
     },
 
-
-
     getAttemptsByUser: async (userId) => {
         try {
             const response = await api.get(`/api/attempts/user/${userId}`);

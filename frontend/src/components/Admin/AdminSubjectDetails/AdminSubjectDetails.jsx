@@ -80,11 +80,26 @@ const AdminSubjectDetails = ({ subjectId }) => {
 
         if (!response.ok) {
           const errorData = await response.json();
+          // If 404 and message is 'No exams found for this subject', treat as empty list
+          if (response.status === 404 && errorData.message && errorData.message.includes('No exams found')) {
+            setExams([]);
+            return;
+          }
           throw new Error(errorData.message || 'Failed to fetch exams');
         }
 
         const data = await response.json();
         console.log('Fetched exams data:', data); // Add logging
+        
+        // Debug: Log each exam's date fields
+        data.forEach((exam, index) => {
+          console.log(`Exam ${index + 1} (${exam.title}):`);
+          console.log('  startTime:', exam.startTime);
+          console.log('  endTime:', exam.endTime);
+          console.log('  startTime type:', typeof exam.startTime);
+          console.log('  endTime type:', typeof exam.endTime);
+        });
+        
         setExams(data);
       } catch (error) {
         console.error('Error loading exams:', error);
@@ -130,27 +145,86 @@ const AdminSubjectDetails = ({ subjectId }) => {
                 const worksheet = workbook.Sheets[sheetName];
                 const data = XLSX.utils.sheet_to_json(worksheet);
                 
+                console.log('Raw Excel data:', data);
+                
                 if (data.length === 0) {
                     alert('The Excel file is empty');
                     return;
                 }
 
-                const formattedQuestions = data.map(row => ({
-                    question: row.question || '',
-                    options: [
-                        row.option1 || '',
-                        row.option2 || '',
-                        row.option3 || '',
-                        row.option4 || ''
-                    ],
-                    correctAnswer: parseInt(row.correctAnswer) - 1
-                }));
+                const formattedQuestions = data.map((row, index) => {
+                    // Validate required fields
+                    if (!row.question || !row.option1 || !row.option2 || !row.option3 || !row.option4) {
+                        throw new Error(`Row ${index + 1}: Missing required fields (question, option1, option2, option3, option4)`);
+                    }
+
+                    // Process correct answer - handle different formats
+                    let correctAnswerIndex = -1;
+                    const correctAnswerValue = row.correctAnswer;
+                    
+                    if (correctAnswerValue === undefined || correctAnswerValue === null || correctAnswerValue === '') {
+                        throw new Error(`Row ${index + 1}: Correct answer is missing`);
+                    }
+
+                    // Try different formats for correct answer
+                    if (typeof correctAnswerValue === 'number') {
+                        // If it's already a number (1-4), convert to 0-based index
+                        if (correctAnswerValue >= 1 && correctAnswerValue <= 4) {
+                            correctAnswerIndex = correctAnswerValue - 1;
+                        } else {
+                            throw new Error(`Row ${index + 1}: Correct answer number must be between 1 and 4`);
+                        }
+                    } else if (typeof correctAnswerValue === 'string') {
+                        // If it's a string, try to parse it
+                        const trimmedValue = correctAnswerValue.trim().toUpperCase();
+                        
+                        // Handle letter format (A, B, C, D)
+                        if (['A', 'B', 'C', 'D'].includes(trimmedValue)) {
+                            correctAnswerIndex = ['A', 'B', 'C', 'D'].indexOf(trimmedValue);
+                        } else {
+                            // Try to parse as number
+                            const numValue = parseInt(trimmedValue);
+                            if (!isNaN(numValue) && numValue >= 1 && numValue <= 4) {
+                                correctAnswerIndex = numValue - 1;
+                            } else {
+                                throw new Error(`Row ${index + 1}: Invalid correct answer format. Use 1-4 or A-D`);
+                            }
+                        }
+                    } else {
+                        throw new Error(`Row ${index + 1}: Invalid correct answer format. Use 1-4 or A-D`);
+                    }
+
+                    return {
+                        question: row.question.trim(),
+                        options: [
+                            row.option1.trim(),
+                            row.option2.trim(),
+                            row.option3.trim(),
+                            row.option4.trim()
+                        ],
+                        correctAnswer: correctAnswerIndex
+                    };
+                });
+
+                console.log('Formatted questions:', formattedQuestions);
+                console.log('Sample question structure:', formattedQuestions[0]);
+                console.log('Correct answer validation:', formattedQuestions.map((q, i) => ({
+                  questionIndex: i,
+                  correctAnswer: q.correctAnswer,
+                  correctAnswerText: q.options[q.correctAnswer],
+                  options: q.options
+                })));
 
                 setExcelQuestions(formattedQuestions);
                 setQuestions(formattedQuestions);
             } catch (error) {
                 console.error('Error reading Excel file:', error);
-                alert('Error reading Excel file. Please make sure it\'s in the correct format.');
+                alert(`Error reading Excel file: ${error.message}`);
+                // Reset file selection on error
+                setExcelFile(null);
+                setExcelFileName('');
+                setExcelQuestions([]);
+                setQuestions([]);
             }
         };
         reader.readAsBinaryString(file);
@@ -209,8 +283,27 @@ const AdminSubjectDetails = ({ subjectId }) => {
       return;
     }
 
+    // Validate that all questions have valid correct answers
+    const invalidQuestions = questions.filter((q, index) => 
+      q.correctAnswer === undefined || 
+      q.correctAnswer === null || 
+      q.correctAnswer < 0 || 
+      q.correctAnswer >= q.options.length
+    );
+
+    if (invalidQuestions.length > 0) {
+      alert(`Questions ${invalidQuestions.map(q => questions.indexOf(q) + 1).join(', ')} have invalid correct answers. Please fix them before creating the exam.`);
+      return;
+    }
+
     try {
       const formData = new FormData(e.target);
+      
+      // Debug: Log the raw form data
+      console.log('Raw form data:');
+      console.log('startDate:', formData.get('startDate'));
+      console.log('endDate:', formData.get('endDate'));
+      
       const examData = {
         title: formData.get('title'),
         description: formData.get('description'),
@@ -230,7 +323,14 @@ const AdminSubjectDetails = ({ subjectId }) => {
         isActive: true
       };
 
+      // Debug: Log the processed exam data
       console.log('Creating exam with data:', examData);
+      console.log('startTime ISO:', examData.startTime);
+      console.log('endTime ISO:', examData.endTime);
+      console.log('Questions being sent to backend:', examData.questions);
+      if (examData.questions.length > 0) {
+        console.log('First question structure being sent:', examData.questions[0]);
+      }
 
       const response = await fetch('http://localhost:5000/api/exams', {
         method: 'POST',
@@ -308,13 +408,28 @@ const AdminSubjectDetails = ({ subjectId }) => {
 
   const handleSaveEdit = async (examId) => {
     try {
+      // Debug: Log the original edited exam data
+      console.log('Original editedExam:', editedExam);
+      
+      // Convert datetime-local values to ISO strings
+      const examDataToUpdate = {
+        ...editedExam,
+        startTime: new Date(editedExam.startTime).toISOString(),
+        endTime: new Date(editedExam.endTime).toISOString()
+      };
+
+      // Debug: Log the processed update data
+      console.log('Updating exam with data:', examDataToUpdate);
+      console.log('startTime ISO:', examDataToUpdate.startTime);
+      console.log('endTime ISO:', examDataToUpdate.endTime);
+
       const response = await fetch(`http://localhost:5000/api/exams/${examId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(editedExam)
+        body: JSON.stringify(examDataToUpdate)
       });
 
       if (!response.ok) {
@@ -323,6 +438,8 @@ const AdminSubjectDetails = ({ subjectId }) => {
       }
 
       const updatedExam = await response.json();
+      console.log('Updated exam response:', updatedExam);
+      
       setExams(prevExams => 
         prevExams.map(exam => 
           exam._id === examId ? { ...exam, ...updatedExam } : exam
@@ -526,6 +643,19 @@ const AdminSubjectDetails = ({ subjectId }) => {
 
               {uploadMethod === 'excel' ? (
                 <div className="excel-upload">
+                  <div className="excel-instructions">
+                    <h4>Excel File Format Instructions:</h4>
+                    <p>Your Excel file should have the following columns:</p>
+                    <ul>
+                      <li><strong>question</strong> - The question text</li>
+                      <li><strong>option1</strong> - First option</li>
+                      <li><strong>option2</strong> - Second option</li>
+                      <li><strong>option3</strong> - Third option</li>
+                      <li><strong>option4</strong> - Fourth option</li>
+                      <li><strong>correctAnswer</strong> - Correct answer (use 1-4 or A-D)</li>
+                    </ul>
+                    <p><strong>Note:</strong> For correct answer, you can use either numbers (1, 2, 3, 4) or letters (A, B, C, D).</p>
+                  </div>
                   {!excelFile ? (
                     <div className="file-upload" onClick={() => document.getElementById('excelFile').click()}>
                       <input
@@ -785,7 +915,7 @@ const AdminSubjectDetails = ({ subjectId }) => {
                             // Always store in ISO format
                             handleEditChange(e);
                           }}
-                          min="2025-01-01T00:00"
+                          min="2000-01-01T00:00"
                           max="2099-12-31T23:59"
                           className="edit-input"
                           required
@@ -804,7 +934,7 @@ const AdminSubjectDetails = ({ subjectId }) => {
                             // Always store in ISO format
                             handleEditChange(e);
                           }}
-                          min="2025-01-01T00:00"
+                          min="2000-01-01T00:00"
                           max="2099-12-31T23:59"
                           className="edit-input"
                           required

@@ -30,6 +30,19 @@ const examSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
+  maxAttempts: {
+    type: Number,
+    required: true,
+    default: 1
+  },
+  startTime: {
+    type: Date,
+    required: true
+  },
+  endTime: {
+    type: Date,
+    required: true
+  },
   questions: [{
     questionText: {
       type: String,

@@ -3,11 +3,11 @@ import "./Sidebar.css";
 import Camera from "./Camera";
 import AudioDetection from '../AudioDetection/AudioDetection';
 
-const Sidebar = () => {
+const Sidebar = ({ onFaceStatusChange, mode }) => {
   return (
     <div className="exam-sidebar">
       <div className="sidebar-content">
-        <Camera />
+        <Camera onFaceStatusChange={onFaceStatusChange} mode={mode} />
         <AudioDetection />
         <div className="sidebar-info">
           <div className="info-section">

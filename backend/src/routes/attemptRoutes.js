@@ -80,56 +80,6 @@ router.post('/start', auth, async (req, res) => {
   }
 });
 
-// Save progress
-router.post('/:id/progress', auth, async (req, res) => {
-  try {
-    const { answers, currentIndex, timeLeft } = req.body;
-    const attempt = await Attempt.findById(req.params.id);
-    if (!attempt) {
-      return res.status(404).json({ message: 'Attempt not found' });
-    }
-    if (attempt.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to update this attempt' });
-    }
-    if (attempt.status !== 'in_progress') {
-      return res.status(400).json({ message: 'Attempt already completed' });
-    }
-    attempt.answers = answers;
-    attempt.lastSavedIndex = currentIndex;
-    attempt.timeLeft = timeLeft;
-    await attempt.save();
-    res.json(attempt);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
-
-// Update attempt
-router.put('/:id', auth, async (req, res) => {
-  try {
-    const attempt = await Attempt.findById(req.params.id);
-    if (!attempt) {
-      return res.status(404).json({ message: 'Attempt not found' });
-    }
-    if (attempt.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to update this attempt' });
-    }
-    if (attempt.status !== 'in_progress') {
-      return res.status(400).json({ message: 'Cannot update completed attempt' });
-    }
-
-    const { answers, lastSavedIndex, timeLeft } = req.body;
-    if (answers) attempt.answers = answers;
-    if (lastSavedIndex !== undefined) attempt.lastSavedIndex = lastSavedIndex;
-    if (timeLeft !== undefined) attempt.timeLeft = timeLeft;
-
-    await attempt.save();
-    res.json(attempt);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
-
 // Submit attempt
 router.post('/:id/submit', auth, async (req, res) => {
   try {
@@ -179,88 +129,6 @@ router.post('/:id/submit', auth, async (req, res) => {
   }
 });
 
-// Abandon attempt
-router.post('/:id/abandon', auth, async (req, res) => {
-  try {
-    const attempt = await Attempt.findById(req.params.id);
-    if (!attempt) {
-      return res.status(404).json({ message: 'Attempt not found' });
-    }
-    if (attempt.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to abandon this attempt' });
-    }
-    if (attempt.status !== 'in_progress') {
-      return res.status(400).json({ message: 'Attempt already completed or abandoned' });
-    }
-    attempt.status = 'abandoned';
-    await attempt.save();
-    res.json(attempt);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
-
-// Delete attempt (admin only)
-router.delete('/:id', auth, adminAuth, async (req, res) => {
-  try {
-    const attempt = await Attempt.findById(req.params.id);
-    if (!attempt) {
-      return res.status(404).json({ message: 'Attempt not found' });
-    }
-    await Attempt.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Attempt deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Save assignment attempt status
-router.post('/assignment-status', auth, async (req, res) => {
-  try {
-    const { assignmentId, subjectId, status } = req.body;
-    const userId = req.user._id;
-    if (!assignmentId || !subjectId || !status) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-    let attempt = await Attempt.findOne({
-      user: userId,
-      assignment: assignmentId,
-      subject: subjectId
-    });
-    if (attempt) {
-      attempt.status = status;
-      await attempt.save();
-    } else {
-      attempt = new Attempt({
-        user: userId,
-        assignment: assignmentId,
-        subject: subjectId,
-        status: status,
-        startTime: new Date(),
-        answers: []
-      });
-      await attempt.save();
-    }
-    res.json({ success: true, attempt });
-  } catch (err) {
-    console.error('Error saving attempt status:', err);
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Get user's assignment attempts
-router.get('/user-assignments/:subjectId', auth, async (req, res) => {
-  try {
-    const attempts = await Attempt.find({
-      user: req.user._id,
-      subject: req.params.subjectId
-    });
-    res.json(attempts);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
 // Create new attempt
 router.post('/', auth, async (req, res) => {
   try {
@@ -299,6 +167,20 @@ router.post('/', auth, async (req, res) => {
   } catch (err) {
     console.error('Error creating attempt:', err);
     res.status(400).json({ message: err.message });
+  }
+});
+
+// Delete attempt by ID (admin only)
+router.delete('/:id', auth, adminAuth, async (req, res) => {
+  try {
+    const attempt = await Attempt.findById(req.params.id);
+    if (!attempt) {
+      return res.status(404).json({ message: 'Attempt not found' });
+    }
+    await attempt.deleteOne();
+    res.json({ message: 'Attempt deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 

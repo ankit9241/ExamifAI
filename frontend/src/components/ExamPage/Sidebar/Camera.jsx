@@ -1,64 +1,30 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Camera.css";
+import FaceRecognition from "./FaceRecognition";
 
-const Camera = () => {
-  const [cameraError, setCameraError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [stream, setStream] = useState(null);
-  const videoRef = useRef(null);
+const Camera = ({ onFaceStatusChange, mode }) => {
+  // mode: 'register' or 'recognition'
+  // onFaceStatusChange: (status) => void
+  const [faceStatus, setFaceStatus] = useState('ok'); // 'ok', 'no-face', 'wrong-face'
+  const [registered, setRegistered] = useState(false);
 
   useEffect(() => {
-    async function startCamera() {
-      try {
-        const streamData = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 320 },
-            height: { ideal: 240 },
-            facingMode: "user"
-          }
-        });
-        setStream(streamData);
+    if (onFaceStatusChange) onFaceStatusChange(faceStatus);
+  }, [faceStatus, onFaceStatusChange]);
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = streamData;
-        }
-      } catch (e) {
-        setCameraError(true);
-        setErrorMessage("Camera access required for exam monitoring");
-      }
-    }
+  if (mode === 'register' && !registered) {
+    return (
+      <div className="exam-camera">
+        <FaceRecognition mode="register" onRegistered={() => setRegistered(true)} />
+      </div>
+    );
+  }
 
-    startCamera();
-
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, []);
-
+  // After registration, or in recognition mode
   return (
     <div className="exam-camera">
-      {cameraError ? (
-        <div className="camera-error">
-          <div className="error-icon">⚠️</div>
-          <div className="error-message">{errorMessage}</div>
-        </div>
-      ) : (
-        <div className="camera-feed">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="camera-video"
-          />
-          <div className="camera-status">
-            <span className="status-dot"></span>
-            <span className="status-text">Camera Active</span>
-          </div>
-        </div>
-      )}
+      <FaceRecognition mode="recognition" onFaceStatusChange={setFaceStatus} />
+      {/* Optionally, show a warning overlay here if faceStatus is not 'ok' */}
     </div>
   );
 };

@@ -190,10 +190,6 @@ const SubmissionView = () => {
             <div className="info-item"><span className="label">Status:</span><span className={`status-badge ${attempt.status.toLowerCase()}`}>
               {attempt.status}
             </span></div>
-            {/* Debug info */}
-            <div style={{fontSize: '0.7rem', color: '#666', marginTop: '5px'}}>
-              Debug: Status = "{attempt.status}", Class = "{attempt.status.toLowerCase()}"
-            </div>
           </div>
         </div>
       </div>
@@ -201,12 +197,25 @@ const SubmissionView = () => {
       {/* Answers Section */}
       <div className="answers-section">
         <h2>Question-wise Answers</h2>
-        <div className="answers-grid">
+        <div className="answers-grid premium">
           {exam.questions.map((question, index) => {
             const answer = attempt.answers.find(a => (a.questionIndex !== undefined ? a.questionIndex : a.question) === index);
             // Support both selectedOption (number) and selectedAnswer (string or number)
             const selectedOption = answer?.selectedOption !== undefined ? answer.selectedOption : answer?.selectedAnswer;
-            const hasAnswered = selectedOption !== undefined && selectedOption !== null && selectedOption !== '' && selectedOption !== 'Not Answered' && selectedOption !== -1;
+            
+            // Determine the student's selected option index
+            let studentSelectedIndex = -1;
+            if (selectedOption !== undefined && selectedOption !== null && selectedOption !== '' && selectedOption !== 'Not Answered') {
+              if (typeof selectedOption === 'number') {
+                // If selectedOption is already an index
+                studentSelectedIndex = selectedOption;
+              } else {
+                // If selectedOption is the answer text, find the index
+                studentSelectedIndex = question.options.findIndex(option => option === selectedOption);
+              }
+            }
+            
+            const hasAnswered = studentSelectedIndex !== -1;
             
             // Get the correct answer text
             const correctAnswerText = question.correctAnswer !== undefined && question.options && question.options[question.correctAnswer] !== undefined
@@ -214,15 +223,7 @@ const SubmissionView = () => {
               : null;
             
             // Compare the actual answer text
-            const isCorrect = hasAnswered && selectedOption === correctAnswerText;
-            
-            // Debug logging
-            console.log(`Question ${index + 1}:`, {
-              selectedOption,
-              correctAnswerText,
-              isCorrect,
-              hasAnswered
-            });
+            const isCorrect = hasAnswered && studentSelectedIndex === question.correctAnswer;
             
             return (
               <div key={index} className="answer-card">
@@ -232,18 +233,21 @@ const SubmissionView = () => {
                     {hasAnswered ? (isCorrect ? 'Correct' : 'Incorrect') : 'Not Answered'}
                   </span>
                 </div>
-                <p className="question-text">{question.question}</p>
+                <p className="question-text">{question.questionText || question.question}</p>
                 <div className="options-list">
                   {question.options.map((option, optIndex) => (
                     <div 
                       key={optIndex} 
                       className={`option ${optIndex === question.correctAnswer ? 'correct-answer' : ''} 
-                        ${option === selectedOption ? 'student-answer' : ''}`}
+                        ${optIndex === studentSelectedIndex ? 'student-answer' : ''}`}
                     >
                       <span className="option-label">Option {optIndex + 1}:</span>
                       <span className="option-text">{option}</span>
                       {optIndex === question.correctAnswer && (
                         <span className="correct-indicator">✓</span>
+                      )}
+                      {optIndex === studentSelectedIndex && optIndex !== question.correctAnswer && (
+                        <span className="student-indicator">✗</span>
                       )}
                     </div>
                   ))}
@@ -252,7 +256,7 @@ const SubmissionView = () => {
                   <div className="detail-item">
                     <span className="label">Student's Answer:</span>
                     <span className="value">
-                      {hasAnswered ? selectedOption : 'Not Answered'}
+                      {hasAnswered ? question.options[studentSelectedIndex] : 'Not Answered'}
                     </span>
                   </div>
                   <div className="detail-item">

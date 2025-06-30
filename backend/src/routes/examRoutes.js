@@ -36,12 +36,10 @@ router.get('/subject/:subjectId', auth, async (req, res) => {
       });
     }
 
-    // Get all exams for the subject with populated questions
+    // Get all exams for the subject (questions are embedded, not a separate collection)
     const exams = await Exam.find({ subject: subject._id })
-      .populate({
-        path: 'questions',
-        select: 'questionText options correctAnswer marks'
-      })
+      .populate('subject', 'name code')
+      .populate('createdBy', 'name email')
       .lean();
 
     if (!exams || exams.length === 0) {
@@ -66,6 +64,16 @@ router.get('/subject/:subjectId', auth, async (req, res) => {
     });
 
     console.log(`Found ${examsWithAttempts.length} exams for subject:`, subjectId);
+    
+    // Debug: Log each exam's date fields
+    examsWithAttempts.forEach((exam, index) => {
+      console.log(`Exam ${index + 1} (${exam.title}):`);
+      console.log('  startTime:', exam.startTime);
+      console.log('  endTime:', exam.endTime);
+      console.log('  startTime type:', typeof exam.startTime);
+      console.log('  endTime type:', typeof exam.endTime);
+    });
+    
     res.json(examsWithAttempts);
   } catch (error) {
     console.error('Error in getExamsBySubject:', error);
@@ -161,11 +169,18 @@ router.post('/submit', auth, async (req, res) => {
 router.post('/', auth, adminAuth, async (req, res) => {
   try {
     console.log('Creating exam with data:', req.body);
+    console.log('startTime from request:', req.body.startTime);
+    console.log('endTime from request:', req.body.endTime);
+    
     const exam = new Exam({
       ...req.body,
       createdBy: req.user._id
     });
+    
+    console.log('Exam object before save:', exam);
     await exam.save();
+    console.log('Exam saved successfully:', exam);
+    
     res.status(201).json(exam);
   } catch (err) {
     console.error('Error in POST / route:', err);
@@ -179,6 +194,10 @@ router.post('/', auth, adminAuth, async (req, res) => {
 // Update exam (admin only)
 router.put('/:id', auth, adminAuth, async (req, res) => {
   try {
+    console.log('Updating exam with data:', req.body);
+    console.log('startTime from request:', req.body.startTime);
+    console.log('endTime from request:', req.body.endTime);
+    
     const exam = await Exam.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -187,6 +206,8 @@ router.put('/:id', auth, adminAuth, async (req, res) => {
     if (!exam) {
       return res.status(404).json({ message: 'Exam not found' });
     }
+    
+    console.log('Exam updated successfully:', exam);
     res.json(exam);
   } catch (err) {
     console.error('Error in PUT /:id route:', err);

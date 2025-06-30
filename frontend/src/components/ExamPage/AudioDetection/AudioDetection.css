@@ -24,8 +24,48 @@
 
 .audio-warning {
   margin-top: 10px;
-  font-size: 0.9rem;
-  color: red;
-  font-weight: bold;
+  font-size: 1rem;
+  color: #fff;
+  background: linear-gradient(90deg, #2a6bb1 0%, #4db6ac 100%);
+  font-weight: 600;
   text-align: center;
+  border-radius: 18px;
+  padding: 8px 22px;
+  box-shadow: 0 2px 8px rgba(42, 107, 177, 0.13);
+  display: inline-block;
+  letter-spacing: 0.2px;
+  border: none;
+  outline: none;
+  transition: background 0.2s;
+  opacity: 0.95;
+}
+
+.audio-indicator {
+  margin-top: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  border-radius: 18px;
+  padding: 8px 22px;
+  box-shadow: 0 2px 8px rgba(42, 107, 177, 0.13);
+  display: inline-block;
+  letter-spacing: 0.2px;
+  border: none;
+  outline: none;
+  background: #f8fafc;
+  color: #2a6bb1;
+  opacity: 0.95;
+}
+
+.audio-indicator span {
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+.audio-yes span {
+  color: #22b573;
+}
+
+.audio-no span {
+  color: #b0b7c3;
 } 

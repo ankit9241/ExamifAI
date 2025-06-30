@@ -9,6 +9,7 @@ import QuestionNavigation from "../QuestionNavigation/QuestionNavigation";
 import "./ExamPage.css";
 import useFullscreen from './useFullscreen';
 import WarningModal from '../SubmitConfirmation/WarningModal';
+import FaceRecognition from "../Sidebar/FaceRecognition";
 
 const calculateScore = (answers, questions) => {
   if (!answers || !questions) {
@@ -59,6 +60,12 @@ const ExamPage = () => {
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [showTabWarning, setShowTabWarning] = useState(false);
   const violationTimeoutRef = useRef(null);
+  const [faceStatus, setFaceStatus] = useState('ok'); // 'ok', 'no-face', 'wrong-face'
+  const [faceRegistered, setFaceRegistered] = useState(() => {
+    // Check if face is already registered in localStorage
+    return !!localStorage.getItem('registeredFaceDescriptor');
+  });
+  const [hasStarted, setHasStarted] = useState(false);
 
   // Helper functions
   const validateExamData = (examData) => {
@@ -112,6 +119,13 @@ const ExamPage = () => {
       const examDetails = await examService.getExamById(examId);
       if (!examDetails || !examDetails.isActive) {
         throw new Error('Exam not available');
+      }
+
+      // Debug: Log the exam details and questions
+      console.log('Exam details loaded:', examDetails);
+      console.log('Questions array:', examDetails.questions);
+      if (examDetails.questions && examDetails.questions.length > 0) {
+        console.log('First question structure:', examDetails.questions[0]);
       }
 
       // Set exam data
@@ -184,17 +198,28 @@ const ExamPage = () => {
     enter();
   }, [enter]);
 
+  // Set hasStarted to true after first question is loaded
+  useEffect(() => {
+    if (examQuestions.length > 0 && !hasStarted) {
+      setHasStarted(true);
+    }
+  }, [examQuestions, hasStarted]);
+
   // Tab/window switch and shortcut prevention
   useEffect(() => {
-    function handleVisibilityChange() {
-      if (document.hidden) {
+    function handleViolation() {
+      if (hasStarted) {
         setTabSwitchCount((count) => count + 1);
         setShowTabWarning(true);
       }
     }
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        handleViolation();
+      }
+    }
     function handleBlur() {
-      setTabSwitchCount((count) => count + 1);
-      setShowTabWarning(true);
+      handleViolation();
     }
     function handleKeyDown(e) {
       // Block shortcuts
@@ -204,31 +229,45 @@ const ExamPage = () => {
         (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) // Dev tools
       ) {
         e.preventDefault();
-        setTabSwitchCount((count) => count + 1);
-        setShowTabWarning(true);
+        handleViolation();
       }
     }
     function handleContextMenu(e) {
       e.preventDefault();
-      setTabSwitchCount((count) => count + 1);
-      setShowTabWarning(true);
+      handleViolation();
+    }
+    function handleFullscreenChange() {
+      // If not in fullscreen, count as violation only if hasStarted
+      if (!document.fullscreenElement &&
+          !document.webkitFullscreenElement &&
+          !document.mozFullScreenElement &&
+          !document.msFullscreenElement) {
+        handleViolation();
+      }
     }
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleBlur);
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleBlur);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
     };
-  }, []);
+  }, [hasStarted]);
 
   // Auto-submit after 3 violations
   useEffect(() => {
     if (tabSwitchCount >= 3) {
-      setShowTabWarning(false);
       if (!violationTimeoutRef.current) {
         violationTimeoutRef.current = setTimeout(() => {
           handleSubmit();
@@ -312,6 +351,7 @@ const ExamPage = () => {
           state: { 
             attemptId: response._id,
             examId: exam._id,
+            subjectId: exam.subject?._id,
             score: score.toFixed(1),
             status: score >= 40 ? 'Pass' : 'Fail',
             examName: exam.title,
@@ -384,8 +424,66 @@ const ExamPage = () => {
     return <div>Error: {error}</div>;
   }
 
+  // ENFORCE REGISTRATION BEFORE EXAM
+  if (!faceRegistered) {
+    return (
+      <div className="face-registration-overlay">
+        <h2>Face Registration Required</h2>
+        <FaceRecognition mode="register" onRegistered={() => setFaceRegistered(true)} />
+        <div className="face-registration-desc">
+          Please register your face before starting the exam. This is required for exam monitoring and security.
+        </div>
+      </div>
+    );
+  }
+
+  // Determine mode for Sidebar/Camera
+  const sidebarMode = faceRegistered ? 'recognition' : 'register';
+
+  // Show warning if face is not detected or wrong face
+  const showFaceWarning = faceStatus === 'no-face' || faceStatus === 'wrong-face';
+  const warningMessage = faceStatus === 'no-face'
+    ? 'No face detected. Please keep your face visible in the camera.'
+    : faceStatus === 'wrong-face'
+      ? 'Unrecognized face detected! Only the registered student is allowed.'
+      : '';
+
   return (
     <div className="exam-page">
+      {/* Highlighted Violation Counter in top-center */}
+      <div style={{
+        position: 'fixed',
+        top: 18,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 2001,
+        background: tabSwitchCount === 0
+          ? 'linear-gradient(90deg, #e3f0ff 0%, #f8fafc 100%)'
+          : (tabSwitchCount < 3
+              ? 'linear-gradient(90deg, #fffbe6 0%, #ffe082 100%)'
+              : 'linear-gradient(90deg, #ffeaea 0%, #ffb3b3 100%)'),
+        color: tabSwitchCount === 0 ? '#2a6bb1' : (tabSwitchCount < 3 ? '#b26a00' : '#c0392b'),
+        border: tabSwitchCount === 0 ? '2px solid #90caf9' : (tabSwitchCount < 3 ? '2px solid #ffd600' : '2px solid #e53935'),
+        borderRadius: 16,
+        padding: '10px 32px',
+        fontWeight: 700,
+        fontSize: '1.25rem',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+        transition: 'color 0.2s, background 0.2s',
+        pointerEvents: 'none',
+        minWidth: 180,
+        textAlign: 'center',
+        letterSpacing: '0.03em',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 12,
+      }}>
+        <span style={{fontSize: '1.6rem', marginRight: 8, color: tabSwitchCount === 0 ? '#1976d2' : (tabSwitchCount < 3 ? '#ff9800' : '#d32f2f')}}>
+          {tabSwitchCount === 0 ? '🛈' : '⚠️'}
+        </span>
+        Violations: <span style={{marginLeft: 8, fontWeight: 900}}>{tabSwitchCount}</span>
+      </div>
       {!isFullscreen && (
         <WarningModal
           open={!isFullscreen}
@@ -395,7 +493,7 @@ const ExamPage = () => {
           buttonText="Re-enter Fullscreen"
         />
       )}
-      <Header timeLeft={timeLeft} />
+      <Header timeLeft={timeLeft} subjectCode={exam?.subject?.code || ''} />
       {examQuestions.length > 0 && (
         <QuestionNavigation
           onNext={handleNext}
@@ -413,8 +511,14 @@ const ExamPage = () => {
         />
       )}
       <div className="exam-content">
-        <Sidebar />
-        <div className="main-content">
+        <Sidebar
+          onFaceStatusChange={status => {
+            setFaceStatus(status);
+            if (status === 'ok' && !faceRegistered) setFaceRegistered(true);
+          }}
+          mode={sidebarMode}
+        />
+        <div className={`main-content${showFaceWarning ? ' blurred' : ''}`} style={{ position: 'relative' }}>
           {cameraError ? (
             <div className="camera-error">{cameraError}</div>
           ) : (
@@ -425,7 +529,6 @@ const ExamPage = () => {
                     question={examQuestions[currentIndex]}
                     selectedAnswer={selectedAnswers[currentIndex]}
                     onAnswerSelect={(answer) => {
-                      console.log('Selected answer:', answer);
                       setSelectedAnswers((prev) => ({
                         ...prev,
                         [currentIndex]: answer,
@@ -438,6 +541,9 @@ const ExamPage = () => {
                     onPrevious={handlePrev}
                     totalQuestions={examQuestions.length}
                     onFinalSubmit={() => setShowModal(true)}
+                    showFaceWarning={showFaceWarning}
+                    warningMessage={warningMessage}
+                    blurred={showFaceWarning}
                   />
                 </>
               ) : (

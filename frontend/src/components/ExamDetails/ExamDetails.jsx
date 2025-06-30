@@ -229,7 +229,12 @@ const ExamDetails = () => {
             </div>
             <button 
               className="review-btn"
-              onClick={() => navigate(`/review`, { state: { attemptId: attempt._id } })}
+              onClick={() => navigate(`/review`, { 
+                state: { 
+                  attemptId: attempt._id,
+                  subjectId: exam?.subject?._id
+                } 
+              })}
             >
               Review Your Answers
             </button>

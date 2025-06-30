@@ -38,6 +38,11 @@ const AdminExamResults = () => {
           }
         });
         setExam(examResponse.data);
+        
+        // Debug: Log exam data
+        console.log('Exam data:', examResponse.data);
+        console.log('Passing marks:', examResponse.data.passingMarks);
+        console.log('Total questions:', examResponse.data.questions.length);
 
         // Fetch attempts
         const attemptsResponse = await axios.get(`http://localhost:5000/api/attempts/exam/${examId}`, {
@@ -46,11 +51,31 @@ const AdminExamResults = () => {
           }
         });
         setAttempts(attemptsResponse.data);
+        
+        // Debug: Log attempts data
+        console.log('Attempts data:', attemptsResponse.data);
+        attemptsResponse.data.forEach((attempt, index) => {
+          if (attempt.status === 'completed') {
+            const correctAnswers = calculateCorrectAnswers(attempt, examResponse.data);
+            const percentage = (correctAnswers / examResponse.data.questions.length) * 100;
+            console.log(`Attempt ${index + 1}: ${correctAnswers}/${examResponse.data.questions.length} = ${percentage.toFixed(1)}% (Passing: ${examResponse.data.passingMarks}%)`);
+          }
+        });
 
         // Calculate statistics
         const totalAttempts = attemptsResponse.data.length;
-        const passCount = attemptsResponse.data.filter(a => a.status === 'completed' && a.score >= examResponse.data.passingScore).length;
-        const failCount = attemptsResponse.data.filter(a => a.status === 'completed' && a.score < examResponse.data.passingScore).length;
+        const passCount = attemptsResponse.data.filter(a => {
+          if (a.status !== 'completed') return false;
+          const correctAnswers = calculateCorrectAnswers(a, examResponse.data);
+          const percentage = (correctAnswers / examResponse.data.questions.length) * 100;
+          return percentage >= examResponse.data.passingMarks;
+        }).length;
+        const failCount = attemptsResponse.data.filter(a => {
+          if (a.status !== 'completed') return false;
+          const correctAnswers = calculateCorrectAnswers(a, examResponse.data);
+          const percentage = (correctAnswers / examResponse.data.questions.length) * 100;
+          return percentage < examResponse.data.passingMarks;
+        }).length;
         const inProgressCount = attemptsResponse.data.filter(a => a.status === 'in_progress').length;
         const averageTime = attemptsResponse.data.reduce((acc, curr) => {
           // Only calculate time for completed attempts
@@ -77,23 +102,30 @@ const AdminExamResults = () => {
           completedAttempts.forEach(attempt => {
             const answer = attempt.answers.find(a => (a.questionIndex !== undefined ? a.questionIndex : a.question) === index);
             const selectedOption = answer?.selectedOption !== undefined ? answer.selectedOption : answer?.selectedAnswer;
-            const hasAnswered = selectedOption !== undefined && selectedOption !== null && selectedOption !== '' && selectedOption !== 'Not Answered' && selectedOption !== -1;
             
-            if (hasAnswered) {
-              const correctAnswerText = question.correctAnswer !== undefined && question.options && question.options[question.correctAnswer] !== undefined
-                ? question.options[question.correctAnswer]
-                : null;
-              
-              if (selectedOption === correctAnswerText) {
-                correctCount++;
+            // Determine the student's selected option index
+            let studentSelectedIndex = -1;
+            if (selectedOption !== undefined && selectedOption !== null && selectedOption !== '' && selectedOption !== 'Not Answered') {
+              if (typeof selectedOption === 'number') {
+                // If selectedOption is already an index
+                studentSelectedIndex = selectedOption;
+              } else {
+                // If selectedOption is the answer text, find the index
+                studentSelectedIndex = question.options.findIndex(option => option === selectedOption);
               }
+            }
+            
+            const hasAnswered = studentSelectedIndex !== -1;
+            
+            if (hasAnswered && studentSelectedIndex === question.correctAnswer) {
+              correctCount++;
             }
           });
           
           const correctRate = (correctCount / completedAttempts.length) * 100 || 0;
           return {
             questionNumber: index + 1,
-            questionText: question.question,
+            questionText: question.questionText || question.question,
             correctRate: Math.round(correctRate),
             difficulty: correctRate >= 70 ? 'Easy' : correctRate >= 40 ? 'Medium' : 'Hard'
           };
@@ -135,16 +167,23 @@ const AdminExamResults = () => {
     exam.questions.forEach((question, index) => {
       const answer = attempt.answers.find(a => (a.questionIndex !== undefined ? a.questionIndex : a.question) === index);
       const selectedOption = answer?.selectedOption !== undefined ? answer.selectedOption : answer?.selectedAnswer;
-      const hasAnswered = selectedOption !== undefined && selectedOption !== null && selectedOption !== '' && selectedOption !== 'Not Answered' && selectedOption !== -1;
       
-      if (hasAnswered) {
-        const correctAnswerText = question.correctAnswer !== undefined && question.options && question.options[question.correctAnswer] !== undefined
-          ? question.options[question.correctAnswer]
-          : null;
-        
-        if (selectedOption === correctAnswerText) {
-          correctCount++;
+      // Determine the student's selected option index
+      let studentSelectedIndex = -1;
+      if (selectedOption !== undefined && selectedOption !== null && selectedOption !== '' && selectedOption !== 'Not Answered') {
+        if (typeof selectedOption === 'number') {
+          // If selectedOption is already an index
+          studentSelectedIndex = selectedOption;
+        } else {
+          // If selectedOption is the answer text, find the index
+          studentSelectedIndex = question.options.findIndex(option => option === selectedOption);
         }
+      }
+      
+      const hasAnswered = studentSelectedIndex !== -1;
+      
+      if (hasAnswered && studentSelectedIndex === question.correctAnswer) {
+        correctCount++;
       }
     });
     return correctCount;
@@ -213,6 +252,10 @@ const AdminExamResults = () => {
             <div className="summary-value">{exam.questions.length}</div>
           </div>
           <div className="summary-card">
+            <h3>Passing Marks</h3>
+            <div className="summary-value">{exam.passingMarks}%</div>
+          </div>
+          <div className="summary-card">
             <h3>Students Attempted</h3>
             <div className="summary-value">{stats.totalAttempts}</div>
           </div>
@@ -247,11 +290,15 @@ const AdminExamResults = () => {
                     <td>{index + 1}</td>
                     <td><strong>{attempt.user.name}</strong></td>
                     <td>{attempt.user.rollNo}</td>
-                    <td>{correctAnswers} / {exam.questions.length}</td>
+                    <td>{correctAnswers} / {exam.questions.length} ({(correctAnswers / exam.questions.length * 100).toFixed(1)}%)</td>
                     <td>
                       <span className={`status-badge ${attempt.status}`}>
                         {attempt.status === 'in_progress' ? 'In Progress' : 
-                         attempt.status === 'completed' && correctAnswers >= exam.passingScore ? 'Pass' : 'Fail'}
+                         attempt.status === 'completed' ? 
+                           (() => {
+                             const percentage = (correctAnswers / exam.questions.length) * 100;
+                             return percentage >= exam.passingMarks ? 'Pass' : 'Fail';
+                           })() : 'Fail'}
                       </span>
                     </td>
                     <td>

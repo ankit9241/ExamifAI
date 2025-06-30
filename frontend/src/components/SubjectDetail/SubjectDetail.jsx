@@ -54,11 +54,10 @@ function CourseAssignments() {
 
         setAssignments(formattedExams);
       } catch (error) {
-        // Only log actual errors, not expected error responses
-        if (!error.response || error.response.status !== 400) {
-          console.error('Error loading data:', error);
-        }
-        if (error.response?.status === 401) {
+        // If 404 and message is 'No exams found for this subject', treat as empty list
+        if (error.response && error.response.status === 404 && error.response.data && error.response.data.message && error.response.data.message.includes('No exams found')) {
+          setAssignments([]);
+        } else if (error.response?.status === 401) {
           setError('Your session has expired. Please log in again.');
         } else {
           setError('Failed to load data. Please try again later.');
@@ -230,11 +229,6 @@ function CourseAssignments() {
               <p>
                 <strong>Closed:</strong> {formatDate(item.closeTime)}
               </p>
-              {item.attempted && item.score !== undefined && (
-                <p>
-                  <strong>Score:</strong> {item.score}
-                </p>
-              )}
               {item.attempted && item.attemptDate && (
                 <p>
                   <strong>Attempted on:</strong> {formatDate(item.attemptDate)}

@@ -13,6 +13,7 @@
     "@fortawesome/fontawesome-free": "^6.7.2",
     "axios": "^1.9.0",
     "bootstrap": "^5.3.5",
+    "face-api.js": "^0.22.2",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

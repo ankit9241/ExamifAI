@@ -4,7 +4,7 @@ import './AudioDetection.css';
 const THRESHOLD = -30; // dB threshold for warning
 
 const AudioDetection = () => {
-  const [warning, setWarning] = useState(false);
+  const [audioDetected, setAudioDetected] = useState(false);
   const intervalRef = useRef(null);
 
   useEffect(() => {
@@ -29,10 +29,10 @@ const AudioDetection = () => {
           }
           const rms = Math.sqrt(sumSquares / dataArray.length);
           const decibels = 20 * Math.log10(rms);
-          setWarning(isFinite(decibels) && decibels > THRESHOLD);
+          setAudioDetected(isFinite(decibels) && decibels > THRESHOLD);
         }, 100);
       } catch (err) {
-        setWarning(false);
+        setAudioDetected(false);
       }
     }
 
@@ -47,11 +47,7 @@ const AudioDetection = () => {
   }, []);
 
   return (
-    <>
-      {warning && (
-        <div className="audio-warning">⚠️ Voice Detected</div>
-      )}
-    </>
+    <div className={`audio-indicator ${audioDetected ? 'audio-yes' : 'audio-no'}`}>Audio detected: <span>{audioDetected ? 'Yes' : 'No'}</span></div>
   );
 };
 
