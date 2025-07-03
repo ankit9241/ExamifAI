@@ -35,11 +35,11 @@ const examSchema = new mongoose.Schema({
     required: true,
     default: 1
   },
-  startTime: {
+  startDate: {
     type: Date,
     required: true
   },
-  endTime: {
+  endDate: {
     type: Date,
     required: true
   },

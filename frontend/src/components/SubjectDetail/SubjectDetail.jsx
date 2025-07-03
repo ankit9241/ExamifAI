@@ -42,8 +42,8 @@ function CourseAssignments() {
         const formattedExams = response.data.map(exam => ({
           id: exam._id,
           title: exam.title,
-          openTime: exam.startTime,
-          closeTime: exam.endTime,
+          openTime: exam.startDate,
+          closeTime: exam.endDate,
           duration: exam.duration,
           totalQuestions: exam.questions.length,
           description: exam.description,

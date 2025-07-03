@@ -94,10 +94,10 @@ const AdminSubjectDetails = ({ subjectId }) => {
         // Debug: Log each exam's date fields
         data.forEach((exam, index) => {
           console.log(`Exam ${index + 1} (${exam.title}):`);
-          console.log('  startTime:', exam.startTime);
-          console.log('  endTime:', exam.endTime);
-          console.log('  startTime type:', typeof exam.startTime);
-          console.log('  endTime type:', typeof exam.endTime);
+          console.log('  startDate:', exam.startDate);
+          console.log('  endDate:', exam.endDate);
+          console.log('  startDate type:', typeof exam.startDate);
+          console.log('  endDate type:', typeof exam.endDate);
         });
         
         setExams(data);
@@ -308,8 +308,8 @@ const AdminSubjectDetails = ({ subjectId }) => {
         title: formData.get('title'),
         description: formData.get('description'),
         subject: subjectId,
-        startTime: new Date(formData.get('startDate')).toISOString(),
-        endTime: new Date(formData.get('endDate')).toISOString(),      
+        startDate: new Date(formData.get('startDate')).toISOString(),
+        endDate: new Date(formData.get('endDate')).toISOString(),      
         duration: parseInt(formData.get('duration')),
         maxAttempts: parseInt(formData.get('maxAttempts')),
         questions: questions.map(q => ({
@@ -325,8 +325,8 @@ const AdminSubjectDetails = ({ subjectId }) => {
 
       // Debug: Log the processed exam data
       console.log('Creating exam with data:', examData);
-      console.log('startTime ISO:', examData.startTime);
-      console.log('endTime ISO:', examData.endTime);
+      console.log('startDate ISO:', examData.startDate);
+      console.log('endDate ISO:', examData.endDate);
       console.log('Questions being sent to backend:', examData.questions);
       if (examData.questions.length > 0) {
         console.log('First question structure being sent:', examData.questions[0]);
@@ -414,14 +414,15 @@ const AdminSubjectDetails = ({ subjectId }) => {
       // Convert datetime-local values to ISO strings
       const examDataToUpdate = {
         ...editedExam,
-        startTime: new Date(editedExam.startTime).toISOString(),
-        endTime: new Date(editedExam.endTime).toISOString()
+        startDate: new Date(editedExam.startDate).toISOString(),
+        endDate: new Date(editedExam.endDate).toISOString(),
+        maxAttempts: parseInt(editedExam.maxAttempts) || 1
       };
 
       // Debug: Log the processed update data
       console.log('Updating exam with data:', examDataToUpdate);
-      console.log('startTime ISO:', examDataToUpdate.startTime);
-      console.log('endTime ISO:', examDataToUpdate.endTime);
+      console.log('startDate ISO:', examDataToUpdate.startDate);
+      console.log('endDate ISO:', examDataToUpdate.endDate);
 
       const response = await fetch(`http://localhost:5000/api/exams/${examId}`, {
         method: 'PUT',
@@ -474,15 +475,16 @@ const AdminSubjectDetails = ({ subjectId }) => {
       }
     };
 
-    const startTime = formatDateTime(exam.startTime || new Date().toISOString());
-    const endTime = formatDateTime(exam.endTime || new Date().toISOString());
+    const startDate = formatDateTime(exam.startDate || new Date().toISOString());
+    const endDate = formatDateTime(exam.endDate || new Date().toISOString());
 
     setEditedExam({
       title: exam.title,
       description: exam.description,
       duration: exam.duration,
-      startTime,
-      endTime
+      startDate,
+      endDate,
+      maxAttempts: exam.maxAttempts || 1
     });
   };
 
@@ -501,8 +503,8 @@ const AdminSubjectDetails = ({ subjectId }) => {
 
   const getExamStatus = (exam) => {
     const now = new Date();
-    const startTime = new Date(exam.startTime);
-    const endTime = new Date(exam.endTime);
+    const startDate = new Date(exam.startDate);
+    const endDate = new Date(exam.endDate);
 
     // Check if exam is active
     if (!exam.isActive) {
@@ -515,9 +517,9 @@ const AdminSubjectDetails = ({ subjectId }) => {
     }
 
     // Check time-based status
-    if (now < startTime) {
+    if (now < startDate) {
       return 'upcoming';
-    } else if (now >= startTime && now <= endTime) {
+    } else if (now >= startDate && now <= endDate) {
       return 'active';
     } else {
       return 'completed';
@@ -590,13 +592,6 @@ const AdminSubjectDetails = ({ subjectId }) => {
                     // Prevent decimal input
                     if (e.key === '.') {
                       e.preventDefault();
-                    }
-                  }}
-                  onChange={(e) => {
-                    // Ensure only whole numbers
-                    const value = e.target.value;
-                    if (value.includes('.')) {
-                      e.target.value = Math.floor(value);
                     }
                   }}
                 />
@@ -903,15 +898,14 @@ const AdminSubjectDetails = ({ subjectId }) => {
                         />
                       </div>
                       <div className="edit-field">
-                        <label>Start Time</label>
+                        <label>Start Date</label>
                         <input
                           type="datetime-local"
-                          name="startTime"
-                          value={editedExam.startTime || new Date().toISOString().slice(0, 16)}
+                          name="startDate"
+                          value={editedExam.startDate || new Date().toISOString().slice(0, 16)}
                           onChange={(e) => {
                             const value = e.target.value;
                             if (!value) return;
-                            
                             // Always store in ISO format
                             handleEditChange(e);
                           }}
@@ -922,15 +916,14 @@ const AdminSubjectDetails = ({ subjectId }) => {
                         />
                       </div>
                       <div className="edit-field">
-                        <label>End Time</label>
+                        <label>End Date</label>
                         <input
                           type="datetime-local"
-                          name="endTime"
-                          value={editedExam.endTime || new Date().toISOString().slice(0, 16)}
+                          name="endDate"
+                          value={editedExam.endDate || new Date().toISOString().slice(0, 16)}
                           onChange={(e) => {
                             const value = e.target.value;
                             if (!value) return;
-                            
                             // Always store in ISO format
                             handleEditChange(e);
                           }}
@@ -940,6 +933,17 @@ const AdminSubjectDetails = ({ subjectId }) => {
                           required
                         />
                       </div>
+                      <div className="edit-field">
+                        <label>Max Attempts</label>
+                        <input
+                          type="number"
+                          name="maxAttempts"
+                          value={editedExam.maxAttempts}
+                          onChange={handleEditChange}
+                          className="edit-input"
+                          min="1"
+                        />
+                      </div>
                     </div>
                   </>
                 ) : (
@@ -947,10 +951,11 @@ const AdminSubjectDetails = ({ subjectId }) => {
                     <p className="description">{exam.description}</p>
                     <div className="exam-info">
                       <p><strong>Duration:</strong> {exam.duration} minutes</p>
-                      <p><strong>Start:</strong> {formatDate(exam.startTime)}</p>
-                      <p><strong>End:</strong> {formatDate(exam.endTime)}</p>
+                      <p><strong>Start:</strong> {formatDate(exam.startDate)}</p>
+                      <p><strong>End:</strong> {formatDate(exam.endDate)}</p>
                       <p><strong>Questions:</strong> {exam.questions.length}</p>
                       <p><strong>Status:</strong> <span className={`status ${getExamStatus(exam)}`}>{getExamStatus(exam)}</span></p>
+                      <p><strong>Max Attempts:</strong> {exam.maxAttempts}</p>
                     </div>
                   </>
                 )}

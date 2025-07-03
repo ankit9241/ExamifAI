@@ -218,9 +218,6 @@ const ExamPage = () => {
         handleViolation();
       }
     }
-    function handleBlur() {
-      handleViolation();
-    }
     function handleKeyDown(e) {
       // Block shortcuts
       if (
@@ -246,7 +243,6 @@ const ExamPage = () => {
       }
     }
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleBlur);
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -255,7 +251,6 @@ const ExamPage = () => {
     document.addEventListener('MSFullscreenChange', handleFullscreenChange);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleBlur);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
@@ -567,8 +562,8 @@ const ExamPage = () => {
           onClose={() => setShowTabWarning(false)}
           title="Warning: Exam Policy Violation"
           message={tabSwitchCount === 1
-            ? 'You switched tabs, minimized, or tried a blocked shortcut. Please do not leave the exam window or use shortcuts.'
-            : `You have violated the policy ${tabSwitchCount} times. On the 3rd violation, your exam will be auto-submitted.`}
+            ? 'You switched tabs, minimized, pressed F11, double-clicked the window, or tried a blocked shortcut. Please do not leave the exam window, use F11, double-click, or use shortcuts.'
+            : `You have violated the policy ${tabSwitchCount} times. On the 3rd violation, your exam will be auto-submitted. (Violations include switching tabs, F11, double-click, or using shortcuts.)`}
           buttonText="Continue Exam"
         />
       )}

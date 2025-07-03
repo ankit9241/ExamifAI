@@ -33,38 +33,62 @@
 
 .exam-details {
   margin-bottom: 2rem;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+  background: none;
+}
+
+.exam-details.two-column-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem 2.5rem;
+  margin-bottom: 2rem;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  background: none;
 }
 
 .detail-item {
   display: flex;
-  justify-content: space-between;
-  padding: 1rem 0;
-  border-bottom: 1px solid #e0e0e0;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.18rem 0 0.08rem 0;
+  border-bottom: 1px dashed #e0e0e0;
+  margin-bottom: 0.02rem;
+  background: none;
 }
 
 .detail-label {
-  font-weight: 600;
+  font-weight: bold;
   color: #2c3e50;
-  font-size: 1.1rem;
-  padding: 0.5rem 1rem;
-  background-color: #f8fafc;
-  border-radius: 6px;
-  border-left: 4px solid #4a90e2;
+  font-size: 1.05rem;
+  padding: 0.08rem 0.3rem 0.08rem 0;
+  background: none;
+  border-radius: 3px;
+  border-left: none;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.15rem;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .detail-value {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 1.1rem;
-  padding: 0.5rem 1rem;
-  background-color: #f8fafc;
-  border-radius: 6px;
-  text-align: right;
+  font-weight: 500;
+  color: #205081;
+  font-size: 1.05rem;
+  padding: 0.08rem 0.5rem;
+  background: #f2f7fd;
+  border-radius: 4px;
+  text-align: left;
   display: inline-block;
   white-space: nowrap;
+  min-width: 0;
+  letter-spacing: 0.01em;
+  transition: background 0.2s;
 }
 
 .detail-value.passed {
@@ -186,15 +210,28 @@
 }
 
 .exam-status-message {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background-color: #ffebee;
-  color: #c62828;
-  border: 1px solid #f44336;
-  border-radius: 8px;
-  font-weight: 600;
+  padding: 16px 22px;
+  border-radius: 10px;
+  margin: 18px 0 0 0;
+  font-size: 1.08rem;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid #e0e7ef;
+  background: #f8fafc;
+  color: #374151;
   text-align: center;
-  font-size: 1.1rem;
+}
+
+.exam-status-info {
+  border-color: #b2dfdb;
+  background: #e0f7fa;
+  color: #00796b;
+}
+
+.exam-status-error {
+  border-color: #ffcdd2;
+  background: #ffebee;
+  color: #c62828;
 }
 
 .exam-description {
@@ -424,5 +461,12 @@
 
   .instructions li strong {
     font-size: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .exam-details.two-column-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }

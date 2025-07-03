@@ -66,6 +66,11 @@ router.post('/start', auth, async (req, res) => {
     if (!exam || !exam.isActive) {
       return res.status(400).json({ message: 'Exam not available' });
     }
+    // Check how many attempts the user has already made for this exam
+    const attemptCount = await Attempt.countDocuments({ user: req.user._id, exam: examId });
+    if (attemptCount >= exam.maxAttempts) {
+      return res.status(403).json({ message: `You have reached the maximum number of attempts (${exam.maxAttempts}) for this exam. You can only review your previous attempts.` });
+    }
     const attempt = new Attempt({
       user: req.user._id,
       exam: examId,

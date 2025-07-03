@@ -28,8 +28,13 @@ const ReviewPage = () => {
           if (!eid) throw new Error('Exam ID not found');
           examObj = await examService.getExamById(eid);
         }
+        // Always fetch the latest exam if endDate is missing
+        if (!examObj.endDate && examObj._id) {
+          examObj = await examService.getExamById(examObj._id);
+        }
         setExam(examObj);
         setLoading(false);
+        console.log("Loaded exam object in ReviewPage:", examObj);
       } catch (error) {
         setError(error.message);
         setLoading(false);
@@ -81,6 +86,8 @@ const ReviewPage = () => {
     return correctCount;
   };
 
+  
+
   const score = calculateScore();
   const totalQuestions = exam.questions.length;
   const percentageScore = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
@@ -97,6 +104,13 @@ const ReviewPage = () => {
   const getExamTitle = (attempt, exam) => attempt.examName || exam?.title || attempt.exam?.title || 'N/A';
   const getStatusClass = (status) => status ? status.toLowerCase().replace(/\s/g, '_') : '';
 
+  // Add this after exam and attempt are loaded
+  const now = new Date();
+  const examEndTime = exam.endDate ? new Date(exam.endDate) : null;
+  const showResults = examEndTime && now > examEndTime;
+
+  console.log("now:", now, "examEndTime:", examEndTime, "showResults:", showResults, "exam.endDate:", exam.endDate);
+
   return (
     <div className="review-page">
       <div className="review-content">
@@ -107,28 +121,31 @@ const ReviewPage = () => {
           >
             <span className="icon">←</span> Back to Course
           </button>
-          <div className="review-header-premium review-header-modern">
-            <div className="review-header-content">
-              <div className="review-exam-title">
-                {exam.title || 'Exam Review'}
+          <div className="review-header-premium-minimal">
+            <div className="review-header-title">
+              {exam.title || 'Exam Review'}
+            </div>
+            <div className="review-header-details-row">
+              <div className="review-header-col review-header-col-left">
+                <div className="review-header-label">Time:
+                  <span className="review-header-value">{formatTime(timeTakenSeconds)}</span>
+                </div>
+                <div className="review-header-label">Attempted:
+                  <span className="review-header-value">{attemptedCount} / {totalQuestions}</span>
+                </div>
               </div>
-              <div className="review-details-grid">
-                <div className="review-details-row">
-                  <span className="review-detail-pill score-pill">
-                    <span className="icon">📊</span> Score: <b>{score} / {totalQuestions} ({percentageScore}%)</b>
-                  </span>
-                  <span className={`review-detail-pill status-pill ${isPassed ? 'passed' : 'failed'}`}>
-                    <span className="icon">{isPassed ? '✅' : '❌'}</span> {isPassed ? 'PASSED' : 'FAILED'}
-                  </span>
-                </div>
-                <div className="review-details-row">
-                  <span className="review-detail-pill time-pill">
-                    <span className="icon">⏱️</span> Time Taken: <b>{formatTime(timeTakenSeconds)}</b>
-                  </span>
-                  <span className="review-detail-pill attempted-pill">
-                    <span className="icon">📝</span> Attempted: <b>{attemptedCount} / {totalQuestions}</b>
-                  </span>
-                </div>
+              <div className="review-header-divider"></div>
+              <div className="review-header-col review-header-col-right">
+                {showResults ? <>
+                  <div className="review-header-label">Score:
+                    <span className="review-header-value review-header-score">{score} / {totalQuestions} ({percentageScore}%)</span>
+                  </div>
+                  <div className="review-header-label">Status:
+                    <span className={`review-header-value review-header-status ${isPassed ? 'passed' : 'failed'}`}>{isPassed ? 'Passed' : 'Failed'}</span>
+                  </div>
+                </> : <>
+                  <div className="review-header-wait">Result will be available after exam ends</div>
+                </>}
               </div>
             </div>
           </div>
@@ -169,26 +186,27 @@ const ReviewPage = () => {
                 <div key={index} className="answer-card">
                   <div className="question-header">
                     <h3>Question {index + 1}</h3>
-                    <span className={`attempt-status ${studentSelectedIndex !== -1 ? (isCorrect ? 'correct' : 'incorrect') : 'not-attempted'}`}>
-                      {studentSelectedIndex !== -1 ? (isCorrect ? 'Correct' : 'Incorrect') : 'Not Attempted'}
-                    </span>
+                    {showResults ? (
+                      <span className={`attempt-status ${studentSelectedIndex !== -1 ? (isCorrect ? 'correct' : 'incorrect') : 'not-attempted'}`}>
+                        {studentSelectedIndex !== -1 ? (isCorrect ? 'Correct' : 'Incorrect') : 'Not Attempted'}
+                      </span>
+                    ) : (
+                      <span className="attempt-status">{studentSelectedIndex !== -1 ? 'Attempted' : 'Not Attempted'}</span>
+                    )}
                   </div>
                   <p className="question-text">{question.questionText || question.question}</p>
                   <div className="options-list">
                     {question.options.map((option, optIndex) => (
                       <div
                         key={optIndex}
-                        className={`option ${optIndex === question.correctAnswer ? 'correct-answer' : ''} ${optIndex === studentSelectedIndex ? 'student-answer' : ''}`}
+                        className={`option ${optIndex === studentSelectedIndex ? 'student-answer' : ''}`}
                       >
                         <span className="option-label">Option {optIndex + 1}:</span>
                         <span className="option-text">{option}</span>
-                        {optIndex === question.correctAnswer && 
-                         question.correctAnswer !== undefined && 
-                         question.correctAnswer >= 0 && 
-                         question.correctAnswer < question.options.length && (
+                        {showResults && optIndex === question.correctAnswer && question.correctAnswer !== undefined && question.correctAnswer >= 0 && question.correctAnswer < question.options.length && (
                           <span className="correct-indicator">✓</span>
                         )}
-                        {optIndex === studentSelectedIndex && optIndex !== question.correctAnswer && (
+                        {showResults && optIndex === studentSelectedIndex && optIndex !== question.correctAnswer && (
                           <span className="student-indicator">✗</span>
                         )}
                       </div>
@@ -203,16 +221,18 @@ const ReviewPage = () => {
                           : 'Not Answered'}
                       </span>
                     </div>
-                    <div className="detail-item">
-                      <span className="label">Correct Answer:</span>
-                      <span className="value">
-                        {question.correctAnswer !== undefined && 
-                         question.correctAnswer >= 0 && 
-                         question.correctAnswer < question.options.length
-                          ? question.options[question.correctAnswer]
-                          : 'Not Available'}
-                      </span>
-                    </div>
+                    {showResults && (
+                      <div className="detail-item">
+                        <span className="label">Correct Answer:</span>
+                        <span className="value">
+                          {question.correctAnswer !== undefined && 
+                           question.correctAnswer >= 0 && 
+                           question.correctAnswer < question.options.length
+                            ? question.options[question.correctAnswer]
+                            : 'Not Available'}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

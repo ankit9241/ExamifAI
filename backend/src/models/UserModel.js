@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema({
     tokenExpiry: {
         type: Date,
         default: null
+    },
+    faceDescriptor: {
+        type: [Number], // Single array of 128 numbers
+        default: undefined
     }
 }, {
     timestamps: true

@@ -92,12 +92,13 @@
 
 .exam-camera {
   width: 100%;
-  min-width: 320px;
-  background: white;
+  min-width: 340px;
+  background: none;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  height: 300px;
+  height: 340px;
+  margin: 0;
 }
 
 .camera-feed {

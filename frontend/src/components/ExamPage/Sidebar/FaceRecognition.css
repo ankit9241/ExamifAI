@@ -77,4 +77,88 @@
 .premium-register-btn:hover {
   background: linear-gradient(90deg, #245d9b 0%, #3da89c 100%);
   transform: translateY(-2px) scale(1.03);
+}
+.premium-face-card-premium {
+  background: #f8fafc;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(60, 120, 200, 0.10);
+  padding: 8px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 380px;
+  margin: 0 auto;
+  border: 2px solid #e3eafc;
+  margin-top: 8px !important;
+}
+.premium-face-video-premium {
+  width: 340px !important;
+  height: 260px !important;
+  border-radius: 12px;
+  background: #e3eafc;
+  object-fit: cover;
+  margin-bottom: 12px;
+  margin-top: 0 !important;
+  border: 2px solid #b6c6e6;
+  box-shadow: 0 2px 8px rgba(60, 120, 200, 0.08);
+  padding: 0 !important;
+  display: block;
+}
+.premium-face-status-premium {
+  font-weight: 600;
+  font-size: 18px;
+  color: #1976d2;
+  background: rgba(25, 118, 210, 0.08);
+  border-radius: 8px;
+  padding: 10px 18px;
+  margin-bottom: 16px;
+  margin-top: 0;
+  min-height: 32px;
+  text-align: center;
+  letter-spacing: 0.01em;
+  box-shadow: 0 1px 4px rgba(60, 120, 200, 0.04);
+}
+.premium-face-status-premium.face-status-ok {
+  color: #2e7d32;
+  background: rgba(46, 125, 50, 0.08);
+}
+.premium-face-status-premium.face-status-no-face {
+  color: #b8860b;
+  background: rgba(255, 215, 64, 0.10);
+}
+.premium-face-status-premium.face-status-wrong {
+  color: #c0392b;
+  background: rgba(255, 0, 0, 0.08);
+}
+.premium-register-btn-premium {
+  background: linear-gradient(90deg, #1976d2 0%, #64b5f6 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 32px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  outline: none;
+  letter-spacing: 0.03em;
+  min-width: 180px;
+}
+.premium-register-btn-premium:hover {
+  background: linear-gradient(90deg, #245d9b 0%, #3da89c 100%);
+}
+.premium-face-instructions-premium {
+  margin-top: 18px;
+  color: #607d8b;
+  font-size: 15px;
+  text-align: center;
+  max-width: 320px;
+  line-height: 1.5;
+}
+.premium-face-instructions-premium .highlight {
+  color: #1976d2;
+  font-weight: 500;
 } 

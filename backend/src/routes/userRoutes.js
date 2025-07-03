@@ -61,4 +61,29 @@ router.delete('/clear/all', auth, adminAuth, async (req, res) => {
   }
 });
 
+// Save face descriptor for current user
+router.post('/face', auth, async (req, res) => {
+  try {
+    const { faceDescriptor } = req.body;
+    if (!Array.isArray(faceDescriptor) || faceDescriptor.length !== 128) {
+      return res.status(400).json({ message: 'Invalid face descriptor' });
+    }
+    req.user.faceDescriptor = faceDescriptor;
+    await req.user.save();
+    res.json({ message: 'Face descriptor saved successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Clear all users' faceDescriptors (admin only)
+router.delete('/face/clear/all', auth, adminAuth, async (req, res) => {
+  try {
+    await User.updateMany({}, { $unset: { faceDescriptor: 1 } });
+    res.json({ message: 'All face descriptors cleared successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router; 

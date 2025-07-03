@@ -261,7 +261,7 @@ const AdminExamResults = () => {
           </div>
           <div className="summary-card">
             <h3>Submission Deadline</h3>
-            <div className="summary-value">{formatDate(exam.endTime)}</div>
+            <div className="summary-value">{formatDate(exam.endDate)}</div>
           </div>
         </div>
       </div>

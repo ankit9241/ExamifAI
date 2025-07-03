@@ -256,4 +256,33 @@ export const attemptService = {
             throw error;
         }
     }
+};
+
+// User services
+export const userService = {
+    saveFaceDescriptor: async (faceDescriptor) => {
+        try {
+            const response = await api.post('/api/users/face', { faceDescriptor });
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to save face descriptor' };
+        }
+    },
+    // Optionally, add a method to clear all face descriptors (admin only)
+    clearAllFaceDescriptors: async () => {
+        try {
+            const response = await api.delete('/api/users/face/clear/all');
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to clear face descriptors' };
+        }
+    },
+    getProfile: async () => {
+        try {
+            const response = await api.get('/api/users/profile');
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to fetch user profile' };
+        }
+    }
 }; 
