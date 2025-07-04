@@ -99,10 +99,10 @@ const AdminExamResults = () => {
         const completedAttempts = attemptsResponse.data.filter(a => a.status === 'completed');
         const insights = examResponse.data.questions.map((question, index) => {
           let correctCount = 0;
+          let answeredCount = 0;
           completedAttempts.forEach(attempt => {
             const answer = attempt.answers.find(a => (a.questionIndex !== undefined ? a.questionIndex : a.question) === index);
             const selectedOption = answer?.selectedOption !== undefined ? answer.selectedOption : answer?.selectedAnswer;
-            
             // Determine the student's selected option index
             let studentSelectedIndex = -1;
             if (selectedOption !== undefined && selectedOption !== null && selectedOption !== '' && selectedOption !== 'Not Answered') {
@@ -114,15 +114,15 @@ const AdminExamResults = () => {
                 studentSelectedIndex = question.options.findIndex(option => option === selectedOption);
               }
             }
-            
             const hasAnswered = studentSelectedIndex !== -1;
-            
-            if (hasAnswered && studentSelectedIndex === question.correctAnswer) {
-              correctCount++;
+            if (hasAnswered) {
+              answeredCount++;
+              if (studentSelectedIndex === question.correctAnswer) {
+                correctCount++;
+              }
             }
           });
-          
-          const correctRate = (correctCount / completedAttempts.length) * 100 || 0;
+          const correctRate = answeredCount > 0 ? (correctCount / answeredCount) * 100 : 0;
           return {
             questionNumber: index + 1,
             questionText: question.questionText || question.question,
@@ -276,6 +276,7 @@ const AdminExamResults = () => {
                 <th>Sr. No.</th>
                 <th>Student Name</th>
                 <th>Roll No.</th>
+                <th>Attempt #</th>
                 <th>Score</th>
                 <th>Status</th>
                 <th>Time Taken</th>
@@ -283,13 +284,31 @@ const AdminExamResults = () => {
               </tr>
             </thead>
             <tbody>
-              {attempts.map((attempt, index) => {
+              {/* Group attempts by student */}
+              {(() => {
+                // Group attempts by user._id
+                const grouped = {};
+                attempts.forEach((attempt) => {
+                  const userId = attempt.user._id;
+                  if (!grouped[userId]) grouped[userId] = [];
+                  grouped[userId].push(attempt);
+                });
+                // For each student, sort their attempts by endTime ascending (oldest first)
+                Object.values(grouped).forEach(arr => arr.sort((a, b) => new Date(a.endTime || a.startTime) - new Date(b.endTime || b.startTime)));
+                // Flatten for rendering, keeping track of attempt number and latest
+                let srNo = 1;
+                const rows = [];
+                Object.values(grouped).forEach((studentAttempts) => {
+                  studentAttempts.forEach((attempt, idx) => {
+                    const isLatest = idx === studentAttempts.length - 1;
+                    const attemptNumber = idx + 1;
                 const correctAnswers = calculateCorrectAnswers(attempt, exam);
-                return (
-                  <tr key={attempt._id}>
-                    <td>{index + 1}</td>
+                    rows.push(
+                      <tr key={attempt._id} className={isLatest ? 'latest-attempt-row' : ''}>
+                        <td>{srNo++}</td>
                     <td><strong>{attempt.user.name}</strong></td>
                     <td>{attempt.user.rollNo}</td>
+                        <td>{attemptNumber}{attemptNumber === 1 ? 'st' : attemptNumber === 2 ? 'nd' : attemptNumber === 3 ? 'rd' : 'th'}</td>
                     <td>{correctAnswers} / {exam.questions.length} ({(correctAnswers / exam.questions.length * 100).toFixed(1)}%)</td>
                     <td>
                       <span className={`status-badge ${attempt.status}`}>
@@ -328,7 +347,10 @@ const AdminExamResults = () => {
                     </td>
                   </tr>
                 );
-              })}
+                  });
+                });
+                return rows;
+              })()}
             </tbody>
           </table>
         </div>

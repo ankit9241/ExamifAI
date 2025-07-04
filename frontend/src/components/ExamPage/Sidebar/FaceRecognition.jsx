@@ -71,6 +71,9 @@ const FaceRecognition = ({ mode = 'recognition', onRegistered, onFaceStatusChang
     if (detection && detection.descriptor) {
       try {
         await userService.saveFaceDescriptor(Array.from(detection.descriptor)); // Save as single array
+        // Also save to localStorage for immediate recognition use
+        localStorage.setItem(userFaceKey, JSON.stringify(Array.from(detection.descriptor)));
+        setRegisteredDescriptor(Array.from(detection.descriptor));
         setStatus("Face registered successfully!");
         if (onRegistered) onRegistered();
       } catch (err) {
@@ -87,6 +90,7 @@ const FaceRecognition = ({ mode = 'recognition', onRegistered, onFaceStatusChang
     const faceapi = window.faceapi;
     let interval;
     let storedDescriptor = registeredDescriptor;
+    // Try to get from localStorage first
     if (!storedDescriptor) {
       const descStr = localStorage.getItem(userFaceKey);
       if (descStr) {
@@ -94,7 +98,23 @@ const FaceRecognition = ({ mode = 'recognition', onRegistered, onFaceStatusChang
         setRegisteredDescriptor(storedDescriptor);
       }
     }
-    if (!storedDescriptor || !Array.isArray(storedDescriptor) || storedDescriptor.length !== 128) return;
+    // If still not found, fetch from backend (database)
+    async function fetchDescriptorFromBackend() {
+      try {
+        const profile = await userService.getProfile();
+        if (Array.isArray(profile.faceDescriptor) && profile.faceDescriptor.length === 128) {
+          localStorage.setItem(userFaceKey, JSON.stringify(profile.faceDescriptor));
+          setRegisteredDescriptor(profile.faceDescriptor);
+          storedDescriptor = profile.faceDescriptor;
+        }
+      } catch (err) {
+        // Could not fetch from backend
+      }
+    }
+    if (!storedDescriptor || !Array.isArray(storedDescriptor) || storedDescriptor.length !== 128) {
+      fetchDescriptorFromBackend();
+      return;
+    }
     setStatus("Detecting face...");
     interval = setInterval(async () => {
       if (!videoRef.current) return;

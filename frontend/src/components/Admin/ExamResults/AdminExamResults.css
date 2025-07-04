@@ -373,4 +373,10 @@
   .summary-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.latest-attempt-row {
+  background-color: #e6ffe6; /* light green background */
+  border-left: 4px solid #2ecc40; /* green border */
+  font-weight: 600;
 } 
