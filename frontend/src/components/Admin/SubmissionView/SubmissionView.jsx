@@ -144,6 +144,7 @@ const SubmissionView = () => {
             <div className="info-item"><span className="label">Start Time:</span><span className="value">{formatDate(attempt.startTime)}</span></div>
             <div className="info-item"><span className="label">End Time:</span><span className="value">{formatDate(attempt.endTime)}</span></div>
             <div className="info-item"><span className="label">Time Taken:</span><span className="value">{formatTimeTaken(attempt.startTime, attempt.endTime)}</span></div>
+            <div className="info-item"><span className="label">Total Violations:</span><span className="value">{attempt.violationCount !== undefined ? attempt.violationCount : 0}</span></div>
           </div>
         </div>
         <div className="exam-details-info premium-card">

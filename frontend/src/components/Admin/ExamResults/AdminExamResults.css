@@ -214,6 +214,9 @@
   justify-content: center;
   min-width: 36px;
   height: 36px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
 }
 
 .delete-btn:hover {
@@ -224,6 +227,11 @@
 .delete-btn svg {
   width: 16px;
   height: 16px;
+}
+
+.attempts-table tr:hover .delete-btn {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Insights Section */
@@ -376,7 +384,24 @@
 }
 
 .latest-attempt-row {
-  background-color: #e6ffe6; /* light green background */
-  border-left: 4px solid #2ecc40; /* green border */
-  font-weight: 600;
-} 
+  position: relative;
+  font-family: 'Montserrat', 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-weight: 500;
+  font-size: 1.12rem;
+  color: #3d2461;
+  box-shadow: 0 4px 18px rgba(61, 36, 97, 0.10);
+  background: none;
+  border-left: none;
+}
+
+.latest-attempt-row td:first-child::before {
+  content: '';
+  display: none;
+}
+
+.latest-attempt-row td:nth-child(2) {
+  font-weight: 900;
+  color: #22223b;
+  font-family: 'Montserrat', 'Inter', 'Segoe UI', Arial, sans-serif;
+  letter-spacing: 0.5px;
+}

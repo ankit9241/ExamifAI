@@ -218,6 +218,28 @@ const ExamDetails = () => {
     });
   };
 
+  const formatTimeTaken = (attempt) => {
+    let seconds = 0;
+    if (attempt.timeTaken && !isNaN(Number(attempt.timeTaken))) {
+      seconds = Math.floor(Number(attempt.timeTaken));
+      if (seconds > 1000) {
+        // already in seconds
+      } else {
+        seconds = seconds * 60;
+      }
+    } else if (
+      (attempt.startDate || attempt.startTime) &&
+      attempt.endTime
+    ) {
+      const start = attempt.startDate ? new Date(attempt.startDate) : new Date(attempt.startTime);
+      const end = new Date(attempt.endTime);
+      seconds = Math.floor((end - start) / 1000);
+    }
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${min} min ${sec} sec`;
+  };
+
   return (
     <div className="exam-details-container">
       <div className="exam-info-card">
@@ -303,7 +325,7 @@ const ExamDetails = () => {
                     <span className="detail-label">Last Attempted On: <span className="detail-value">{formatDate(attempt.endTime)}</span></span>
                   </div>
                   <div className="detail-item">
-                    <span className="detail-label">Time Taken: <span className="detail-value">{attempt.timeTaken} minutes</span></span>
+                    <span className="detail-label">Time Taken: <span className="detail-value">{formatTimeTaken(attempt)}</span></span>
                   </div>
                   {closeTime && now <= closeTime ? (
                     <div className="detail-item">

@@ -68,10 +68,10 @@ router.get('/subject/:subjectId', auth, async (req, res) => {
     // Debug: Log each exam's date fields
     examsWithAttempts.forEach((exam, index) => {
       console.log(`Exam ${index + 1} (${exam.title}):`);
-      console.log('  startTime:', exam.startTime);
-      console.log('  endTime:', exam.endTime);
-      console.log('  startTime type:', typeof exam.startTime);
-      console.log('  endTime type:', typeof exam.endTime);
+      console.log('  startDate:', exam.startDate);
+      console.log('  endDate:', exam.endDate);
+      console.log('  startDate type:', typeof exam.startDate);
+      console.log('  endDate type:', typeof exam.endDate);
     });
     
     res.json(examsWithAttempts);

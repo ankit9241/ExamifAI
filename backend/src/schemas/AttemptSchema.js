@@ -27,7 +27,8 @@ const AttemptSchema = new mongoose.Schema({
   answeredQuestions: { type: Number },
   timeTaken: { type: Number },
   lastSavedIndex: { type: Number, default: 0 },
-  timeLeft: { type: Number }
+  timeLeft: { type: Number },
+  violationCount: { type: Number, default: 0 }
 }, {
   timestamps: true
 });

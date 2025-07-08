@@ -276,7 +276,7 @@ const AdminExamResults = () => {
                 <th>Sr. No.</th>
                 <th>Student Name</th>
                 <th>Roll No.</th>
-                <th>Attempt #</th>
+                <th>Attempt</th>
                 <th>Score</th>
                 <th>Status</th>
                 <th>Time Taken</th>

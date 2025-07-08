@@ -96,6 +96,7 @@ const AdminSubmissionView = () => {
                   <th>Score</th>
                   <th>Submitted On</th>
                   <th>Time Taken</th>
+                  <th>Violations</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -112,6 +113,7 @@ const AdminSubmissionView = () => {
                     <td>{submission.score}%</td>
                     <td>{formatDate(submission.endTime)}</td>
                     <td>{calculateTimeTaken(submission.startTime, submission.endTime)} mins</td>
+                    <td>{submission.violationCount !== undefined ? submission.violationCount : 0}</td>
                     <td>
                       <button
                         className="view-details-btn"
@@ -151,6 +153,7 @@ const AdminSubmissionView = () => {
                 <p><strong>Start Time:</strong> {formatDate(selectedSubmission.startTime)}</p>
                 <p><strong>End Time:</strong> {formatDate(selectedSubmission.endTime)}</p>
                 <p><strong>Time Taken:</strong> {calculateTimeTaken(selectedSubmission.startTime, selectedSubmission.endTime)} minutes</p>
+                <p><strong>Total Violations:</strong> {selectedSubmission.violationCount !== undefined ? selectedSubmission.violationCount : 0}</p>
               </div>
               <div className="answers-section">
                 <h4>Answers</h4>

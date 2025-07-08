@@ -331,7 +331,8 @@ const ExamPage = () => {
         examName: exam.title,
         totalQuestions: examQuestions.length,
         answeredQuestions: Object.keys(selectedAnswers).length,
-        timeTaken: exam.duration * 60 - timeLeft
+        timeTaken: exam.duration * 60 - timeLeft,
+        violationCount: tabSwitchCount
       };
 
       // Submit the exam using exam service
@@ -435,13 +436,15 @@ const ExamPage = () => {
   // Determine mode for Sidebar/Camera
   const sidebarMode = faceRegistered ? 'recognition' : 'register';
 
-  // Show warning if face is not detected or wrong face
-  const showFaceWarning = faceStatus === 'no-face' || faceStatus === 'wrong-face';
+  // Show warning if face is not detected, wrong face, or multiple faces
+  const showFaceWarning = faceStatus === 'no-face' || faceStatus === 'wrong-face' || faceStatus === 'multiple-faces';
   const warningMessage = faceStatus === 'no-face'
     ? 'No face detected. Please keep your face visible in the camera.'
     : faceStatus === 'wrong-face'
       ? 'Unrecognized face detected! Only the registered student is allowed.'
-      : '';
+      : faceStatus === 'multiple-faces'
+        ? 'Multiple faces detected! Only one person should be in front of the camera.'
+        : '';
 
   return (
     <div className="exam-page">

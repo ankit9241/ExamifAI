@@ -44,6 +44,10 @@ const attemptSchema = new mongoose.Schema({
         type: String,
         enum: ['in_progress', 'completed', 'abandoned'],
         default: 'in_progress'
+    },
+    violationCount: {
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true

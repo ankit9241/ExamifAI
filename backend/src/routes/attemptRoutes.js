@@ -99,10 +99,11 @@ router.post('/:id/submit', auth, async (req, res) => {
       return res.status(400).json({ message: 'Attempt already submitted' });
     }
 
-    const { answers, endTime } = req.body;
+    const { answers, endTime, violationCount } = req.body;
     attempt.answers = answers;
     attempt.endTime = endTime || new Date();
     attempt.status = 'completed';
+    attempt.violationCount = violationCount !== undefined ? violationCount : 0;
 
     // Calculate time taken in minutes
     const startTime = new Date(attempt.startTime);
@@ -150,7 +151,8 @@ router.post('/', auth, async (req, res) => {
       examName,
       totalQuestions,
       answeredQuestions,
-      timeTaken
+      timeTaken,
+      violationCount
     } = req.body;
     const attempt = new Attempt({
       user,
@@ -165,7 +167,8 @@ router.post('/', auth, async (req, res) => {
       examName,
       totalQuestions,
       answeredQuestions,
-      timeTaken
+      timeTaken,
+      violationCount: violationCount !== undefined ? violationCount : 0
     });
     const savedAttempt = await attempt.save();
     res.status(201).json(savedAttempt);
