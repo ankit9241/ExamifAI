@@ -135,10 +135,6 @@ ExamifAI/
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Acknowledgments
 
 - [React](https://reactjs.org/)
@@ -146,7 +142,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [MongoDB](https://www.mongodb.com/)
 - [Vite](https://vitejs.dev/)
 - [Face-API.js](https://github.com/justadudewhohacks/face-api.js/)
-
-## Support
-
-For support, email support@examifai.com or open an issue in the GitHub repository.
