@@ -4,6 +4,8 @@ import * as XLSX from 'xlsx';
 import { FaEllipsisV } from 'react-icons/fa';
 import "./AdminSubjectDetails.css";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const formatDate = (dateString) => {
   if (!dateString) return "Not set";
   const date = new Date(dateString);
@@ -19,6 +21,8 @@ const AdminSubjectDetails = ({ subjectId }) => {
   const navigate = useNavigate();
   const [subject, setSubject] = useState(null);
   const [exams, setExams] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showCreateExam, setShowCreateExam] = useState(false);
   const [uploadMethod, setUploadMethod] = useState('excel'); // Changed default to excel
   const [excelQuestions, setExcelQuestions] = useState([]);
@@ -35,84 +39,77 @@ const AdminSubjectDetails = ({ subjectId }) => {
   const [activeMenuId, setActiveMenuId] = useState(null);
 
   useEffect(() => {
-    // Validate and format subject ID
-    if (!subjectId) {
-      console.error('Subject ID is missing');
-      alert('Subject ID is missing. Please try again.');
-      return;
-    }
+    const fetchData = async () => {
+      // Validate and format subject ID
+      if (!subjectId) {
+        const errorMsg = 'Subject ID is missing';
+        console.error(errorMsg);
+        setError(errorMsg);
+        setLoading(false);
+        return;
+      }
 
-    // Load subject data
-    const fetchSubject = async () => {
       try {
+        setLoading(true);
+        setError(null);
+
+        // Load subject data
         console.log('Fetching subject with ID:', subjectId);
-        const response = await fetch(`http://localhost:5000/api/subjects/${subjectId}`, {
+        const subjectResponse = await fetch(`${API_URL}/api/subjects/${subjectId}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Server response:', errorData);
+        if (!subjectResponse.ok) {
+          const errorData = await subjectResponse.json().catch(() => ({}));
           throw new Error(errorData.message || 'Failed to fetch subject');
         }
 
-        const subjectData = await response.json();
-        console.log('Fetched subject data:', subjectData); // Add logging
+        const subjectData = await subjectResponse.json();
+        console.log('Fetched subject data:', subjectData);
         setSubject(subjectData);
-      } catch (error) {
-        console.error('Error loading subject:', error);
-        alert('Error loading subject details. Please try again.');
-      }
-    };
 
-    fetchSubject();
-
-    // Load existing exams for this subject
-    const fetchExams = async () => {
-      try {
-        const response = await fetch(`http://localhost:5000/api/exams/subject/${subjectId}`, {
+        // Load existing exams for this subject
+        const examsResponse = await fetch(`${API_URL}/api/exams/subject/${subjectId}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          // If 404 and message is 'No exams found for this subject', treat as empty list
-          if (response.status === 404 && errorData.message && errorData.message.includes('No exams found')) {
-            setExams([]);
-            return;
-          }
+        if (!examsResponse.ok && examsResponse.status !== 404) {
+          const errorData = await examsResponse.json().catch(() => ({}));
           throw new Error(errorData.message || 'Failed to fetch exams');
         }
 
-        const data = await response.json();
-        console.log('Fetched exams data:', data); // Add logging
-        
+        // If 404 and message is 'No exams found for this subject', treat as empty list
+        const examsData = examsResponse.ok ? await examsResponse.json() : [];
+        console.log('Fetched exams data:', examsData);
+
         // Debug: Log each exam's date fields
-        data.forEach((exam, index) => {
+        examsData.forEach((exam, index) => {
           console.log(`Exam ${index + 1} (${exam.title}):`);
           console.log('  startDate:', exam.startDate);
           console.log('  endDate:', exam.endDate);
           console.log('  startDate type:', typeof exam.startDate);
           console.log('  endDate type:', typeof exam.endDate);
         });
-        
-        setExams(data);
+
+        setExams(Array.isArray(examsData) ? examsData : []);
       } catch (error) {
-        console.error('Error loading exams:', error);
+        console.error('Error:', error);
         if (error.message === 'Failed to fetch') {
-          alert('Unable to connect to the server. Please make sure the backend server is running.');
+          setError('Unable to connect to the server. Please make sure the backend server is running.');
         } else {
-          alert(error.message || 'Error loading exams. Please try again.');
+          setError(error.message || 'An error occurred while loading data');
         }
         setExams([]);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchExams();
+    fetchData();
   }, [subjectId]);
 
   // Add click outside handler
