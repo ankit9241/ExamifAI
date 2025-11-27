@@ -23,7 +23,9 @@ if (process.env.NODE_ENV !== 'production') {
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'http://localhost:5174'
+  'http://localhost:5174',
+  'https://examifai.netlify.app',
+  'https://examifai.onrender.com'
 ];
 
 // CORS configuration
@@ -31,15 +33,15 @@ app.use(cors({
   origin: function(origin, callback) {
     // allow requests with no origin (like mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (allowedOrigins.includes(origin) || origin.endsWith('.netlify.app')) {
       return callback(null, true);
-    } else {
-      return callback(new Error('Not allowed by CORS'));
     }
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar']
 }));
 
 // Security Middleware
