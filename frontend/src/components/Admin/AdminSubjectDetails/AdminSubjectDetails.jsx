@@ -197,10 +197,10 @@ const AdminSubjectDetails = ({ subjectId }) => {
                     return {
                         question: row.question.trim(),
                         options: [
-                            row.option1.trim(),
-                            row.option2.trim(),
-                            row.option3.trim(),
-                            row.option4.trim()
+                            (row.option1 + "").trim(),
+                            (row.option2 + "").trim(),
+                            (row.option3 + "").trim(),
+                            (row.option4 + "").trim()
                         ],
                         correctAnswer: correctAnswerIndex
                     };
